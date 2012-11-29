@@ -1,0 +1,8 @@
+bin/*
+obj/*
+
+#MVS2010
+*.sln
+*.vcxproj*
+*.opensdf
+*.sdf
