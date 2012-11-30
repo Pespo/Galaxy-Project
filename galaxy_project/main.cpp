@@ -34,7 +34,6 @@
         __func__, __FILE__, __LINE__, __VA_ARGS__)
 #endif 
 #endif 
- 
 
 struct GUIStates
 {
@@ -85,6 +84,7 @@ int main( int argc, char **argv )
     glfwOpenWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 #endif
+
     // Open a window and create its OpenGL context
     if( !glfwOpenWindow( width, height, 0,0,0,0, 24,0, GLFW_WINDOW ) )
     {
@@ -99,6 +99,7 @@ int main( int argc, char **argv )
 #ifdef __APPLE__
     glewExperimental = GL_TRUE;
 #endif
+
     GLenum err = glewInit();
     if (GLEW_OK != err)
     {
@@ -125,191 +126,230 @@ int main( int argc, char **argv )
     GUIStates guiStates;
     init_gui_states(guiStates);
 
-    // Load images and upload textures
-    GLuint textures[3];
-    glGenTextures(3, textures);
-    int x;
-    int y;
-    int comp; 
-    unsigned char * diffuse = stbi_load("textures/spnza_bricks_a_diff.tga", &x, &y, &comp, 3);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textures[0]);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, x, y, 0, GL_RGB, GL_UNSIGNED_BYTE, diffuse);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    fprintf(stderr, "Diffuse %dx%d:%d\n", x, y, comp);
-    unsigned char * spec = stbi_load("textures/spnza_bricks_a_spec.tga", &x, &y, &comp, 1);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, textures[1]);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, x, y, 0, GL_RED, GL_UNSIGNED_BYTE, spec);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    fprintf(stderr, "Spec %dx%d:%d\n", x, y, comp);
+    /************* Initialisation des textures *****************/
+        // Load images and upload textures
+        GLuint textures[3];
+        glGenTextures(3, textures);
+        int x;
+        int y;
+        int comp; 
 
-    // Try to load and compile shader
-    int status;
-    ShaderGLSL gbuffer_shader;
-    status = load_shader_from_file(gbuffer_shader, "galaxy_project/3_gbuffer.glsl", ShaderGLSL::VERTEX_SHADER | ShaderGLSL::FRAGMENT_SHADER);
-    if ( status == -1 )
-    {
-        fprintf(stderr, "Error on loading  galaxy_project/3_gbuffer.glsl\n");
-        exit( EXIT_FAILURE );
-    }
-    // Compute locations for gbuffer_shader
-    GLuint gbuffer_projectionLocation = glGetUniformLocation(gbuffer_shader.program, "Projection");
-    GLuint gbuffer_viewLocation = glGetUniformLocation(gbuffer_shader.program, "View");
-    GLuint gbuffer_objectLocation = glGetUniformLocation(gbuffer_shader.program, "Object");
-    GLuint gbuffer_timeLocation = glGetUniformLocation(gbuffer_shader.program, "Time");
-    GLuint gbuffer_diffuseLocation = glGetUniformLocation(gbuffer_shader.program, "Diffuse");
-    GLuint gbuffer_specLocation = glGetUniformLocation(gbuffer_shader.program, "Spec");
+        //Texture diffuse
+        unsigned char * diffuse = stbi_load("textures/spnza_bricks_a_diff.tga", &x, &y, &comp, 3);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, textures[0]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, x, y, 0, GL_RGB, GL_UNSIGNED_BYTE, diffuse);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        fprintf(stderr, "Diffuse %dx%d:%d\n", x, y, comp);
+        
+        //Texture specular
+        unsigned char * spec = stbi_load("textures/spnza_bricks_a_spec.tga", &x, &y, &comp, 1);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, textures[1]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, x, y, 0, GL_RED, GL_UNSIGNED_BYTE, spec);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        fprintf(stderr, "Spec %dx%d:%d\n", x, y, comp);
+    /*********************************/
 
-    // Load Blit shader
-    ShaderGLSL blit_shader;
-    status = load_shader_from_file(blit_shader, "galaxy_project/3_blit.glsl", ShaderGLSL::VERTEX_SHADER | ShaderGLSL::FRAGMENT_SHADER);
-    if ( status == -1 )
-    {
-        fprintf(stderr, "Error on loading  galaxy_project/3_blit.glsl\n");
-        exit( EXIT_FAILURE );
-    }
-    // Compute locations for blit_shader
-    GLuint blit_projectionLocation = glGetUniformLocation(blit_shader.program, "Projection");
-    GLuint blit_tex1Location = glGetUniformLocation(blit_shader.program, "Texture1");
+    /************* Initialisation des shaders*****************/   
+        // Load gbuffer shader
+        int status;
+        ShaderGLSL gbuffer_shader;
+        status = load_shader_from_file(gbuffer_shader, "galaxy_project/3_gbuffer.glsl", ShaderGLSL::VERTEX_SHADER | ShaderGLSL::FRAGMENT_SHADER);
+        if ( status == -1 )
+        {
+            fprintf(stderr, "Error on loading  galaxy_project/3_gbuffer.glsl\n");
+            exit( EXIT_FAILURE );
+        }
+        // Compute locations for gbuffer_shader
+        GLuint gbuffer_projectionLocation = glGetUniformLocation(gbuffer_shader.program, "Projection");
+        GLuint gbuffer_viewLocation = glGetUniformLocation(gbuffer_shader.program, "View");
+        GLuint gbuffer_objectLocation = glGetUniformLocation(gbuffer_shader.program, "Object");
+        GLuint gbuffer_timeLocation = glGetUniformLocation(gbuffer_shader.program, "Time");
+        GLuint gbuffer_diffuseLocation = glGetUniformLocation(gbuffer_shader.program, "Diffuse");
+        GLuint gbuffer_specLocation = glGetUniformLocation(gbuffer_shader.program, "Spec");
 
-    // Load light accumulation shader
-    ShaderGLSL laccum_shader;
-    status = load_shader_from_file(laccum_shader, "galaxy_project/3_laccum_spot.glsl", ShaderGLSL::VERTEX_SHADER | ShaderGLSL::FRAGMENT_SHADER);
-    if ( status == -1 )
-    {
-        fprintf(stderr, "Error on loading  galaxy_project/3_laccum_spot.glsl\n");
-        exit( EXIT_FAILURE );
-    }
-    // Compute locations for light accumulation shader
-    GLuint laccum_projectionLocation = glGetUniformLocation(laccum_shader.program, "Projection");
-    GLuint laccum_materialLocation = glGetUniformLocation(laccum_shader.program, "Material");
-    GLuint laccum_normalLocation = glGetUniformLocation(laccum_shader.program, "Normal");
-    GLuint laccum_depthLocation = glGetUniformLocation(laccum_shader.program, "Depth");
-	GLuint laccum_shadowLocation = glGetUniformLocation(laccum_shader.program, "Shadow");
-    GLuint laccum_inverseViewProjectionLocation = glGetUniformLocation(laccum_shader.program, "InverseViewProjection");
-    GLuint laccum_cameraPositionLocation = glGetUniformLocation(laccum_shader.program, "CameraPosition");
-    GLuint laccum_lightPositionLocation = glGetUniformLocation(laccum_shader.program, "LightPosition");
-    GLuint laccum_lightDirectionLocation = glGetUniformLocation(laccum_shader.program, "LightDirection");
-    GLuint laccum_lightColorLocation = glGetUniformLocation(laccum_shader.program, "LightColor");
-    GLuint laccum_lightIntensityLocation = glGetUniformLocation(laccum_shader.program, "LightIntensity");
-	GLuint laccum_projectionLightBiasLocation = glGetUniformLocation(laccum_shader.program, "ProjectionLightBias");
-	GLuint laccum_shadowBiasLocation = glGetUniformLocation(laccum_shader.program, "ShadowBias");
+        // Load Blit shader
+        ShaderGLSL blit_shader;
+        status = load_shader_from_file(blit_shader, "galaxy_project/3_blit.glsl", ShaderGLSL::VERTEX_SHADER | ShaderGLSL::FRAGMENT_SHADER);
+        if ( status == -1 )
+        {
+            fprintf(stderr, "Error on loading  galaxy_project/3_blit.glsl\n");
+            exit( EXIT_FAILURE );
+        }
+        // Compute locations for blit_shader
+        GLuint blit_projectionLocation = glGetUniformLocation(blit_shader.program, "Projection");
+        GLuint blit_tex1Location = glGetUniformLocation(blit_shader.program, "Texture1");
 
-    float shadowBias = 0.001f;
+        // Load light accumulation shader
+        ShaderGLSL laccum_shader;
+        status = load_shader_from_file(laccum_shader, "galaxy_project/3_laccum_spot.glsl", ShaderGLSL::VERTEX_SHADER | ShaderGLSL::FRAGMENT_SHADER);
+        if ( status == -1 )
+        {
+            fprintf(stderr, "Error on loading  galaxy_project/3_laccum_spot.glsl\n");
+            exit( EXIT_FAILURE );
+        }
 
-    // Load shadow generation shader
-    ShaderGLSL shadowgen_shader;
-    status = load_shader_from_file(shadowgen_shader, "galaxy_project/3_shadowgen.glsl", ShaderGLSL::VERTEX_SHADER | ShaderGLSL::FRAGMENT_SHADER);
-    if ( status == -1 )
-    {
-        fprintf(stderr, "Error on loading  galaxy_project/3_shadowgen.glsl\n");
-        exit( EXIT_FAILURE ); 
-    }
-    // Compute locations for shadow generation shader
-    GLuint shadowgen_projectionLocation = glGetUniformLocation(shadowgen_shader.program, "Projection");
-    GLuint shadowgen_viewLocation = glGetUniformLocation(shadowgen_shader.program, "View");
-    GLuint shadowgen_objectLocation = glGetUniformLocation(shadowgen_shader.program, "Object");
-    GLuint shadowgen_timeLocation = glGetUniformLocation(shadowgen_shader.program, "Time");
+        // Compute locations for light accumulation shader
+        GLuint laccum_projectionLocation = glGetUniformLocation(laccum_shader.program, "Projection");
+        GLuint laccum_materialLocation = glGetUniformLocation(laccum_shader.program, "Material");
+        GLuint laccum_normalLocation = glGetUniformLocation(laccum_shader.program, "Normal");
+        GLuint laccum_depthLocation = glGetUniformLocation(laccum_shader.program, "Depth");
+    	GLuint laccum_shadowLocation = glGetUniformLocation(laccum_shader.program, "Shadow");
+        GLuint laccum_inverseViewProjectionLocation = glGetUniformLocation(laccum_shader.program, "InverseViewProjection");
+        GLuint laccum_cameraPositionLocation = glGetUniformLocation(laccum_shader.program, "CameraPosition");
+        GLuint laccum_lightPositionLocation = glGetUniformLocation(laccum_shader.program, "LightPosition");
+        GLuint laccum_lightDirectionLocation = glGetUniformLocation(laccum_shader.program, "LightDirection");
+        GLuint laccum_lightColorLocation = glGetUniformLocation(laccum_shader.program, "LightColor");
+        GLuint laccum_lightIntensityLocation = glGetUniformLocation(laccum_shader.program, "LightIntensity");
+    	GLuint laccum_projectionLightBiasLocation = glGetUniformLocation(laccum_shader.program, "ProjectionLightBias");
+    	GLuint laccum_shadowBiasLocation = glGetUniformLocation(laccum_shader.program, "ShadowBias");
 
-    // Load geometry
-    int   cube_triangleCount = 12;
-    int   cube_triangleList[] = {0, 1, 2, 2, 1, 3, 4, 5, 6, 6, 5, 7, 8, 9, 10, 10, 9, 11, 12, 13, 14, 14, 13, 15, 16, 17, 18, 19, 17, 20, 21, 22, 23, 24, 25, 26, };
-    float cube_uvs[] = {0.f, 0.f, 0.f, 1.f, 1.f, 0.f, 1.f, 1.f, 0.f, 0.f, 0.f, 1.f, 1.f, 0.f, 1.f, 1.f, 0.f, 0.f, 0.f, 1.f, 1.f, 0.f, 1.f, 1.f, 0.f, 0.f, 0.f, 1.f, 1.f, 0.f, 1.f, 1.f, 0.f, 0.f, 0.f, 1.f, 1.f, 0.f,  1.f, 0.f,  1.f, 1.f,  0.f, 1.f,  1.f, 1.f,  0.f, 0.f, 0.f, 0.f, 1.f, 1.f,  1.f, 0.f,  };
-    float cube_vertices[] = {-0.5, -0.5, 0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, -0.5, -0.5, -0.5, -0.5, -0.5, 0.5, -0.5, 0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, 0.5, 0.5 };
-    float cube_normals[] = {0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, -1, 0, 0, };
-    int   plane_triangleCount = 2;
-    int   plane_triangleList[] = {0, 1, 2, 2, 1, 3}; 
-    float plane_uvs[] = {0.f, 0.f, 0.f, 10.f, 10.f, 0.f, 10.f, 10.f};
-    float plane_vertices[] = {-50.0, -1.0, 50.0, 50.0, -1.0, 50.0, -50.0, -1.0, -50.0, 50.0, -1.0, -50.0};
-    float plane_normals[] = {0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0};
-    int   quad_triangleCount = 2;
-    int   quad_triangleList[] = {0, 1, 2, 2, 1, 3}; 
-    float quad_uvs[] = {0.f, 0.f, 1.f, 0.f, 0.f, 1.f, 1.f, 1.f};
-    float quad_vertices[] = {-0.5, -0.5, 0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5,};
-    float quad_normals[] = {0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1};
+        float shadowBias = 0.001f;
 
-    // Vertex Array Object
-    GLuint vao[3];
-    glGenVertexArrays(3, vao);
+        // Load shadow generation shader
+        ShaderGLSL shadowgen_shader;
+        status = load_shader_from_file(shadowgen_shader, "galaxy_project/3_shadowgen.glsl", ShaderGLSL::VERTEX_SHADER | ShaderGLSL::FRAGMENT_SHADER);
+        if ( status == -1 )
+        {
+            fprintf(stderr, "Error on loading  galaxy_project/3_shadowgen.glsl\n");
+            exit( EXIT_FAILURE ); 
+        }
+        // Compute locations for shadow generation shader
+        GLuint shadowgen_projectionLocation = glGetUniformLocation(shadowgen_shader.program, "Projection");
+        GLuint shadowgen_viewLocation = glGetUniformLocation(shadowgen_shader.program, "View");
+        GLuint shadowgen_objectLocation = glGetUniformLocation(shadowgen_shader.program, "Object");
+        GLuint shadowgen_timeLocation = glGetUniformLocation(shadowgen_shader.program, "Time");
+    /*********************************/
 
-    // Vertex Buffer Objects
-    GLuint vbo[12];
-    glGenBuffers(12, vbo);
+    /************* Initialisation des formes géométriques*****************/   
+    //Draw geometry
+        //Cube
+        int   cube_triangleCount = 12;
+        int   cube_triangleList[] = {0, 1, 2,       2, 1, 3,
+                                     4, 5, 6,       6, 5, 7,
+                                     8, 9, 10,      10, 9, 11,
+                                     12, 13, 14,    14, 13, 15,
+                                     16, 17, 18,    18, 17, 19,
+                                     20, 21, 22,    22, 21, 23};
 
-    // Cube
-    glBindVertexArray(vao[0]);
-    // Bind indices and upload data
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[0]);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cube_triangleList), cube_triangleList, GL_STATIC_DRAW);
-    // Bind vertices and upload data
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT)*3, (void*)0);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertices), cube_vertices, GL_STATIC_DRAW);
-    // Bind normals and upload data
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT)*3, (void*)0);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(cube_normals), cube_normals, GL_STATIC_DRAW);
-    // Bind uv coords and upload data
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT)*2, (void*)0);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(cube_uvs), cube_uvs, GL_STATIC_DRAW);
+        float cube_uvs[] = {0.f, 0.f,   0.f, 1.f,   1.f, 0.f,   1.f, 1.f,
+                            0.f, 0.f,   0.f, 1.f,   1.f, 0.f,   1.f, 1.f,
+                            0.f, 0.f,   0.f, 1.f,   1.f, 0.f,   1.f, 1.f,
+                            0.f, 0.f,   0.f, 1.f,   1.f, 0.f,   1.f, 1.f,
+                            0.f, 0.f,   0.f, 1.f,   1.f, 0.f,   1.f, 1.f,
+                            0.f, 0.f,   0.f, 1.f,   1.f, 0.f,   1.f, 1.f};
 
-    // Plane
-    glBindVertexArray(vao[1]);
-    // Bind indices and upload data
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[4]);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(plane_triangleList), plane_triangleList, GL_STATIC_DRAW);
-    // Bind vertices and upload data
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[5]);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT)*3, (void*)0);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(plane_vertices), plane_vertices, GL_STATIC_DRAW);
-    // Bind normals and upload data
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[6]);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT)*3, (void*)0);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(plane_normals), plane_normals, GL_STATIC_DRAW);
-    // Bind uv coords and upload data
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[7]);
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT)*2, (void*)0);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(plane_uvs), plane_uvs, GL_STATIC_DRAW);
+        float cube_vertices[] = {   -0.5, -0.5, 0.5,    0.5, -0.5, 0.5,     -0.5, 0.5, 0.5,     0.5, 0.5, 0.5,
+                                    -0.5, 0.5, 0.5,     0.5, 0.5, 0.5,      -0.5, 0.5, -0.5,    0.5, 0.5, -0.5,
+                                    -0.5, 0.5, -0.5,    0.5, 0.5, -0.5,     -0.5, -0.5, -0.5,   0.5, -0.5, -0.5,
+                                    -0.5, -0.5, -0.5,   0.5, -0.5, -0.5,    -0.5, -0.5, 0.5,    0.5, -0.5, 0.5,
+                                    0.5, -0.5, 0.5,     0.5, -0.5, -0.5,    0.5, 0.5, 0.5,      0.5, 0.5, -0.5,
+                                    -0.5, 0.5, 0.5,     -0.5, -0.5, 0.5,   -0.5, 0.5, -0.5,    -0.5, -0.5, -0.5};
+
+        float cube_normals[] = {0, 0, 1,    0, 0, 1,    0, 0, 1,    0, 0, 1,
+                                0, 1, 0,    0, 1, 0,    0, 1, 0,    0, 1, 0, 
+                                0, 0, -1,   0, 0, -1,   0, 0, -1,   0, 0, -1, 
+                                0, -1, 0,   0, -1, 0,   0, -1, 0,   0, -1, 0, 
+                                1, 0, 0,    1, 0, 0,    1, 0, 0,    1, 0, 0,
+                                -1, 0, 0,    -1, 0, 0,  -1, 0, 0,   -1, 0, 0};
+    
+        //Plan   
+        int   plane_triangleCount = 2;
+        int   plane_triangleList[] = {0, 1, 2,   2, 1, 3}; 
+        float plane_uvs[] = {0.f, 0.f,   0.f, 10.f,     10.f, 0.f,   10.f, 10.f};
+        float plane_vertices[] = {-50.0, -1.0, 50.0,     50.0, -1.0, 50.0,   -50.0, -1.0, -50.0,    50.0, -1.0, -50.0};
+        float plane_normals[] = {0, 1, 0,    0, 1, 0,   0, 1, 0,    0, 1, 0};
+    
+        //Quad
+        int   quad_triangleCount = 2;
+        int   quad_triangleList[] = {0, 1, 2,    2, 1, 3}; 
+        float quad_uvs[] = {0.f, 0.f,    1.f, 0.f,   0.f, 1.f,   1.f, 1.f};
+        float quad_vertices[] = {-0.5, -0.5, 0.5,    0.5, -0.5, 0.5,     -0.5, 0.5, 0.5,     0.5, 0.5, 0.5,};
+        float quad_normals[] = {0, 0, 1,     0, 0, 1,    0, 0, 1,    0, 0, 1};
+
+    //Load geometry
+        // Vertex Array Object
+        GLuint vao[3];
+        glGenVertexArrays(3, vao);
+
+        // Vertex Buffer Objects
+        GLuint vbo[12];
+        glGenBuffers(12, vbo);
+
+        // Cube
+        glBindVertexArray(vao[0]);
+        // Bind indices and upload data
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[0]);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cube_triangleList), cube_triangleList, GL_STATIC_DRAW);
+        // Bind vertices and upload data
+        glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT)*3, (void*)0);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertices), cube_vertices, GL_STATIC_DRAW);
+        // Bind normals and upload data
+        glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT)*3, (void*)0);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(cube_normals), cube_normals, GL_STATIC_DRAW);
+        // Bind uv coords and upload data
+        glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT)*2, (void*)0);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(cube_uvs), cube_uvs, GL_STATIC_DRAW);
+
+        // Plane
+        glBindVertexArray(vao[1]);
+        // Bind indices and upload data
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[4]);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(plane_triangleList), plane_triangleList, GL_STATIC_DRAW);
+        // Bind vertices and upload data
+        glBindBuffer(GL_ARRAY_BUFFER, vbo[5]);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT)*3, (void*)0);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(plane_vertices), plane_vertices, GL_STATIC_DRAW);
+        // Bind normals and upload data
+        glBindBuffer(GL_ARRAY_BUFFER, vbo[6]);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT)*3, (void*)0);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(plane_normals), plane_normals, GL_STATIC_DRAW);
+        // Bind uv coords and upload data
+        glBindBuffer(GL_ARRAY_BUFFER, vbo[7]);
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT)*2, (void*)0);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(plane_uvs), plane_uvs, GL_STATIC_DRAW);
 
 
-    // Quad
-    glBindVertexArray(vao[2]);
-    // Bind indices and upload data
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[8]);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(quad_triangleList), quad_triangleList, GL_STATIC_DRAW);
-    // Bind vertices and upload data
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[9]);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT)*3, (void*)0);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(quad_vertices), quad_vertices, GL_STATIC_DRAW);
-    // Bind normals and upload data
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[10]);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT)*3, (void*)0);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(quad_normals), quad_normals, GL_STATIC_DRAW);
-    // Bind uv coords and upload data
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[11]);
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT)*2, (void*)0);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(quad_uvs), quad_uvs, GL_STATIC_DRAW);
+        // Quad
+        glBindVertexArray(vao[2]);
+        // Bind indices and upload data
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[8]);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(quad_triangleList), quad_triangleList, GL_STATIC_DRAW);
+        // Bind vertices and upload data
+        glBindBuffer(GL_ARRAY_BUFFER, vbo[9]);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT)*3, (void*)0);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quad_vertices), quad_vertices, GL_STATIC_DRAW);
+        // Bind normals and upload data
+        glBindBuffer(GL_ARRAY_BUFFER, vbo[10]);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT)*3, (void*)0);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quad_normals), quad_normals, GL_STATIC_DRAW);
+        // Bind uv coords and upload data
+        glBindBuffer(GL_ARRAY_BUFFER, vbo[11]);
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT)*2, (void*)0);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quad_uvs), quad_uvs, GL_STATIC_DRAW);
 
-    // Unbind everything. Potentially illegal on some implementations
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+        // Unbind everything. Potentially illegal on some implementations
+        glBindVertexArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 
     // Init frame buffers
@@ -329,8 +369,9 @@ int main( int argc, char **argv )
         exit( EXIT_FAILURE );
     }
 
-    float test = 0.005;
-	int inv = 1;
+    /** Test anim. **/
+        float test = 0.005;
+    	int inv = 1;
 
     do
     {
@@ -396,33 +437,19 @@ int main( int argc, char **argv )
         }
   
         /*****Test***/
-        inv = (abs(cube_vertices[3]) > 2) ? inv*(-1) : inv;
-		for(int i=0; i<84; ++i)
-			cube_vertices[i] += test*inv;
-			// Cube
-		glBindVertexArray(vao[0]);
-		// Bind indices and upload data
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vbo[0]);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cube_triangleList), cube_triangleList, GL_STATIC_DRAW);
+       /* inv = (abs(cube_vertices[3]) > 2) ? inv*(-1) : inv;
+		for(int i=0; i<72; ++i)
+			cube_vertices[i] += test*inv;*/
+		// Cube
+		//glBindVertexArray(vao[0]);
 		// Bind vertices and upload data
-		glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT)*3, (void*)0);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertices), cube_vertices, GL_STATIC_DRAW);
-		// Bind normals and upload data
-		glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT)*3, (void*)0);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(cube_normals), cube_normals, GL_STATIC_DRAW);
-		// Bind uv coords and upload data
-		glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
-		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT)*2, (void*)0);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(cube_uvs), cube_uvs, GL_STATIC_DRAW);
-
+		//glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+		//glEnableVertexAttribArray(0);
+		//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GL_FLOAT)*3, (void*)0);
+		//glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertices), cube_vertices, GL_STATIC_DRAW);
         // Unbind everything. Potentially illegal on some implementations
-        glBindVertexArray(0);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+       // glBindVertexArray(0);
+        //glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         /***********************/
 
@@ -441,43 +468,45 @@ int main( int argc, char **argv )
         float viewProjection[16];     
         float iviewProjection[16];       
 
-        mat4fMul( worldToView, projection, viewProjection);
+        mat4fMul(worldToView, projection, viewProjection);
         mat4fInverse(viewProjection, iviewProjection);
 
+        //Activation et travail sur le gbuffer
         glBindFramebuffer(GL_FRAMEBUFFER, gbuffer.fbo);
-        glDrawBuffers(gbuffer.outCount, gbuffer.drawBuffers);
 
-        // Viewport 
-        glViewport( 0, 0, width, height  );
-        camera.setViewport(0, 0, width, height);
+            glDrawBuffers(gbuffer.outCount, gbuffer.drawBuffers);
 
-        // Default states
-        glEnable(GL_DEPTH_TEST);
+            // Viewport 
+            glViewport( 0, 0, width, height  );
+            camera.setViewport(0, 0, width, height);
 
-        // Clear the front buffer
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            // Default states
+            glEnable(GL_DEPTH_TEST);
 
-        // Bind gbuffer shader
-        glUseProgram(gbuffer_shader.program);
-        // Upload uniforms
-        glUniformMatrix4fv(gbuffer_projectionLocation, 1, 0, projection);
-        glUniformMatrix4fv(gbuffer_viewLocation, 1, 0, worldToView);
-        glUniformMatrix4fv(gbuffer_objectLocation, 1, 0, objectToWorld);
-        glUniform1f(gbuffer_timeLocation, t);
-        glUniform1i(gbuffer_diffuseLocation, 0);
-        glUniform1i(gbuffer_specLocation, 1);
+            // Clear the front buffer
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Bind textures
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, textures[0]);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, textures[1]);
+            // Bind gbuffer shader
+            glUseProgram(gbuffer_shader.program);
+            // Upload uniforms
+            glUniformMatrix4fv(gbuffer_projectionLocation, 1, 0, projection);
+            glUniformMatrix4fv(gbuffer_viewLocation, 1, 0, worldToView);
+            glUniformMatrix4fv(gbuffer_objectLocation, 1, 0, objectToWorld);
+            glUniform1f(gbuffer_timeLocation, t);
+            glUniform1i(gbuffer_diffuseLocation, 0);
+            glUniform1i(gbuffer_specLocation, 1);
 
-        // Render vaos
-        glBindVertexArray(vao[0]);
-        glDrawElementsInstanced(GL_TRIANGLES, cube_triangleCount * 3, GL_UNSIGNED_INT, (void*)0, 4);
-        glBindVertexArray(vao[1]);
-        glDrawElements(GL_TRIANGLES, plane_triangleCount * 3, GL_UNSIGNED_INT, (void*)0);
+            // Bind textures
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, textures[0]);
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, textures[1]);
+
+            // Render vaos
+            glBindVertexArray(vao[0]);
+            glDrawElementsInstanced(GL_TRIANGLES, cube_triangleCount * 3, GL_UNSIGNED_INT, (void*)0, 4);
+            glBindVertexArray(vao[1]);
+            glDrawElements(GL_TRIANGLES, plane_triangleCount * 3, GL_UNSIGNED_INT, (void*)0);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -486,55 +515,53 @@ int main( int argc, char **argv )
 
         glViewport( 0, 0, width, height);
 
-        // Compute light positions
-        //float lightPosition[3] = { 5.0, 5.0, 5.0};
-        float lightPosition[3] = { sin(t) * 10.0, 5.0, cos(t) * 10.0};
-        float lightTarget[3] = { 0.0, 0.0, 0.0};
-        float lightDirection[3];
-        float lightUp[3] = { 0.0, 1.0, 0.0};
-        vec3fSub(lightTarget, lightPosition, lightDirection);
-        vec3fNormalize(lightDirection, vec3fNorm(lightDirection));
-        float lightColor[3] = {1.0, 1.0, 1.0};
-        float lightIntensity = 1.0;
+        // Compute light positions for shadowgenbuffer
+            float lightPosition[3] = { 5.0, 50.0, 5.0};
+            //float lightPosition[3] = { sin(t) * 10.0, 5.0, cos(t) * 10.0};
+            float lightTarget[3] = { 0.0, 0.0, 0.0};
+            float lightDirection[3];
+            float lightUp[3] = { 0.0, 1.0, 0.0};
+            vec3fSub(lightTarget, lightPosition, lightDirection);
+            vec3fNormalize(lightDirection, vec3fNorm(lightDirection));
+            float lightColor[3] = {1.0, 1.0, 1.0};
+            float lightIntensity = 1.0;
 
-        // Build shadow matrices
-        float shadowProjection[16];
-        float worldToLight[16];
-        lookAt(lightPosition, lightTarget, lightUp, worldToLight);
-        perspective(60.f, 1.f, 1.0f, 50.f, shadowProjection );
-        float projectionLight[16];     
-        float projectionLightBias[16];     
-        mat4fMul( worldToLight, shadowProjection,  projectionLight);
-        mat4fMul( projectionLight, MAT4F_M1_P1_TO_P0_P1, projectionLightBias);
+            // Build shadow matrices
+            float shadowProjection[16];
+            float worldToLight[16];
+            lookAt(lightPosition, lightTarget, lightUp, worldToLight);
+            perspective(60.f, 1.f, 1.0f, 50.f, shadowProjection );
+            float projectionLight[16];     
+            float projectionLightBias[16];     
+            mat4fMul( worldToLight, shadowProjection,  projectionLight);
+            mat4fMul( projectionLight, MAT4F_M1_P1_TO_P0_P1, projectionLightBias);
 
 		/////////
-		
+
+		//Activation et travail sur le shadowgenBuffer
 		glBindFramebuffer(GL_FRAMEBUFFER, shadowgen.fbo);
-        glDrawBuffers(shadowgen.outCount, shadowgen.drawBuffers);
+            glDrawBuffers(shadowgen.outCount, shadowgen.drawBuffers);
 
-        // Viewport 
-        glViewport( 0, 0, 1024, 1024);
-        //camera.setViewport(0, 0, width, height);
+            // Viewport 
+            glViewport( 0, 0, 1024, 1024);
+            //camera.setViewport(0, 0, width, height);
 
-        // Default states
-        //glEnable(GL_DEPTH_TEST);
+            // Clear the front buffer
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Clear the front buffer
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        // Bind gbuffer shader
-        glUseProgram(shadowgen_shader.program);
-        // Upload uniforms
-		glUniformMatrix4fv(shadowgen_projectionLocation, 1, 0, shadowProjection);
-        glUniformMatrix4fv(shadowgen_viewLocation, 1, 0, worldToLight);
-        glUniformMatrix4fv(shadowgen_objectLocation, 1, 0, objectToWorld);
-        glUniform1i(shadowgen_timeLocation, t);
-		
-        // Render vaos
-        glBindVertexArray(vao[0]);
-        glDrawElementsInstanced(GL_TRIANGLES, cube_triangleCount * 3, GL_UNSIGNED_INT, (void*)0, 4);
-        glBindVertexArray(vao[1]);
-        glDrawElements(GL_TRIANGLES, plane_triangleCount * 3, GL_UNSIGNED_INT, (void*)0);
+            // Bind gbuffer shader
+            glUseProgram(shadowgen_shader.program);
+            // Upload uniforms
+    		glUniformMatrix4fv(shadowgen_projectionLocation, 1, 0, shadowProjection);
+            glUniformMatrix4fv(shadowgen_viewLocation, 1, 0, worldToLight);
+            glUniformMatrix4fv(shadowgen_objectLocation, 1, 0, objectToWorld);
+            glUniform1i(shadowgen_timeLocation, t);
+    		
+            // Render vaos
+            glBindVertexArray(vao[0]);
+            glDrawElementsInstanced(GL_TRIANGLES, cube_triangleCount * 3, GL_UNSIGNED_INT, (void*)0, 4);
+            glBindVertexArray(vao[1]);
+            glDrawElements(GL_TRIANGLES, plane_triangleCount * 3, GL_UNSIGNED_INT, (void*)0);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -547,101 +574,102 @@ int main( int argc, char **argv )
 		 
         // Bind laccum shader
         glUseProgram(laccum_shader.program);
-        // Upload uniforms
-        glUniformMatrix4fv(laccum_projectionLocation, 1, 0, orthoProj);
-        glUniform1i(laccum_materialLocation, 0);
-        glUniform1i(laccum_normalLocation, 1);
-        glUniform1i(laccum_depthLocation, 2);
-		glUniform1i(laccum_shadowLocation, 3);
-        glUniform3fv(laccum_cameraPositionLocation, 1, cameraPosition);
-        glUniformMatrix4fv(laccum_inverseViewProjectionLocation, 1, 0, iviewProjection);
-		glUniformMatrix4fv(laccum_projectionLightBiasLocation, 1, 0, projectionLightBias);
-		glUniform1f(laccum_shadowBiasLocation, shadowBias);
-			
-        // Bind color to unit 0
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, gbuffer.colorTexId[0]);        
-        // Bind normal to unit 1
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, gbuffer.colorTexId[1]);    
-        // Bind depth to unit 2
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, gbuffer.depthTexId);     
-		// Bind shadow to unit 3
-        glActiveTexture(GL_TEXTURE3);
-        glBindTexture(GL_TEXTURE_2D, shadowgen.depthTexId);   		
+            // Upload uniforms
+            glUniformMatrix4fv(laccum_projectionLocation, 1, 0, orthoProj);
+            glUniform1i(laccum_materialLocation, 0);
+            glUniform1i(laccum_normalLocation, 1);
+            glUniform1i(laccum_depthLocation, 2);
+    		glUniform1i(laccum_shadowLocation, 3);
+            glUniform3fv(laccum_cameraPositionLocation, 1, cameraPosition);
+            glUniformMatrix4fv(laccum_inverseViewProjectionLocation, 1, 0, iviewProjection);
+    		glUniformMatrix4fv(laccum_projectionLightBiasLocation, 1, 0, projectionLightBias);
+    		glUniform1f(laccum_shadowBiasLocation, shadowBias);
+    			
+            // Bind color to unit 0
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, gbuffer.colorTexId[0]);        
+            // Bind normal to unit 1
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, gbuffer.colorTexId[1]);    
+            // Bind depth to unit 2
+            glActiveTexture(GL_TEXTURE2);
+            glBindTexture(GL_TEXTURE_2D, gbuffer.depthTexId);     
+    		// Bind shadow to unit 3
+            glActiveTexture(GL_TEXTURE3);
+            glBindTexture(GL_TEXTURE_2D, shadowgen.depthTexId);   		
 
-        // Blit above the rest
-        glDisable(GL_DEPTH_TEST);
+            // Blit above the rest
+            glDisable(GL_DEPTH_TEST);
 
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_ONE, GL_ONE);
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_ONE, GL_ONE);
 
-        // Light uniforms
-        glUniform3fv(laccum_lightDirectionLocation, 1, lightDirection);
-        glUniform3fv(laccum_lightPositionLocation, 1, lightPosition);
-        glUniform3fv(laccum_lightColorLocation, 1, lightColor);
-        glUniform1f(laccum_lightIntensityLocation, lightIntensity);
+            // Light uniforms
+            glUniform3fv(laccum_lightDirectionLocation, 1, lightDirection);
+            glUniform3fv(laccum_lightPositionLocation, 1, lightPosition);
+            glUniform3fv(laccum_lightColorLocation, 1, lightColor);
+            glUniform1f(laccum_lightIntensityLocation, lightIntensity);
 
-        // Draw quad
-        glBindVertexArray(vao[2]);
-        glDrawElements(GL_TRIANGLES, quad_triangleCount * 3, GL_UNSIGNED_INT, (void*)0);
+            // Draw quad
+            glBindVertexArray(vao[2]);
+            glDrawElements(GL_TRIANGLES, quad_triangleCount * 3, GL_UNSIGNED_INT, (void*)0);
 
-        glDisable(GL_BLEND);
+            glDisable(GL_BLEND);
 
         // Bind blit shader
         glUseProgram(blit_shader.program);
-        // Upload uniforms
-        glUniformMatrix4fv(blit_projectionLocation, 1, 0, orthoProj);
-        glUniform1i(blit_tex1Location, 0);
-        // use only unit 0
-        glActiveTexture(GL_TEXTURE0);
 
-        // Viewport 
-        glViewport( 0, 0, width/4, height/4  );
-        // Bind texture
-        glBindTexture(GL_TEXTURE_2D, gbuffer.colorTexId[0]);        
-        // Draw quad
-        glBindVertexArray(vao[2]);
-        glDrawElements(GL_TRIANGLES, quad_triangleCount * 3, GL_UNSIGNED_INT, (void*)0);
-        
-		// Viewport 
-        glViewport( width/4, 0, width/4, height/4  );
-        // Bind texture
-        glBindTexture(GL_TEXTURE_2D, gbuffer.colorTexId[1]);        
-        // Draw quad
-        glBindVertexArray(vao[2]);
-        glDrawElements(GL_TRIANGLES, quad_triangleCount * 3, GL_UNSIGNED_INT, (void*)0);
-        
-		// Viewport 
-        glViewport( width/4 * 2, 0, width/4, height/4  );
-        // Bind texture
-        glBindTexture(GL_TEXTURE_2D, gbuffer.depthTexId);        
-        // Draw quad
-        glBindVertexArray(vao[2]);
-        glDrawElements(GL_TRIANGLES, quad_triangleCount * 3, GL_UNSIGNED_INT, (void*)0);
-		
-		// Viewport 
-        glViewport( width/4 * 3, 0, width/4, height/4  );
-        // Bind texture
-        glBindTexture(GL_TEXTURE_2D, shadowgen.depthTexId);        
-        // Draw quad
-        glBindVertexArray(vao[2]);
-        glDrawElements(GL_TRIANGLES, quad_triangleCount * 3, GL_UNSIGNED_INT, (void*)0);
+            // Upload uniforms
+            glUniformMatrix4fv(blit_projectionLocation, 1, 0, orthoProj);
+            glUniform1i(blit_tex1Location, 0);
+            // use only unit 0
+            glActiveTexture(GL_TEXTURE0);
 
-        // Draw UI
-        glActiveTexture(GL_TEXTURE0);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glViewport(0, 0, width, height);
-        glDisable(GL_DEPTH_TEST);
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        float orthoUI[16];
-        ortho(0, width, 0, height, 0.0, 1.0, orthoUI);
-        glLoadMatrixf(orthoUI);
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
+            // Viewport 
+            glViewport( 0, 0, width/4, height/4  );
+            // Bind texture
+            glBindTexture(GL_TEXTURE_2D, gbuffer.colorTexId[0]);        
+            // Draw quad
+            glBindVertexArray(vao[2]);
+            glDrawElements(GL_TRIANGLES, quad_triangleCount * 3, GL_UNSIGNED_INT, (void*)0);
+            
+    		// Viewport 
+            glViewport( width/4, 0, width/4, height/4  );
+            // Bind texture
+            glBindTexture(GL_TEXTURE_2D, gbuffer.colorTexId[1]);        
+            // Draw quad
+            glBindVertexArray(vao[2]);
+            glDrawElements(GL_TRIANGLES, quad_triangleCount * 3, GL_UNSIGNED_INT, (void*)0);
+            
+    		// Viewport 
+            glViewport( width/4 * 2, 0, width/4, height/4  );
+            // Bind texture
+            glBindTexture(GL_TEXTURE_2D, gbuffer.depthTexId);        
+            // Draw quad
+            glBindVertexArray(vao[2]);
+            glDrawElements(GL_TRIANGLES, quad_triangleCount * 3, GL_UNSIGNED_INT, (void*)0);
+    		
+    		// Viewport 
+            glViewport( width/4 * 3, 0, width/4, height/4  );
+            // Bind texture
+            glBindTexture(GL_TEXTURE_2D, shadowgen.depthTexId);        
+            // Draw quad
+            glBindVertexArray(vao[2]);
+            glDrawElements(GL_TRIANGLES, quad_triangleCount * 3, GL_UNSIGNED_INT, (void*)0);
+
+            // Draw UI
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glViewport(0, 0, width, height);
+            glDisable(GL_DEPTH_TEST);
+            glMatrixMode(GL_PROJECTION);
+            glLoadIdentity();
+            float orthoUI[16];
+            ortho(0, width, 0, height, 0.0, 1.0, orthoUI);
+            glLoadMatrixf(orthoUI);
+            glMatrixMode(GL_MODELVIEW);
+            glLoadIdentity();
+
         glUseProgram(0);
 
         unsigned char mbut = 0;
