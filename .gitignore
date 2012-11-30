@@ -6,3 +6,5 @@ obj/*
 *.vcxproj*
 *.opensdf
 *.sdf
+*.suo
+ipch/*
