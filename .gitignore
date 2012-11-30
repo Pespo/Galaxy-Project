@@ -8,3 +8,6 @@ obj/*
 *.sdf
 *.suo
 ipch/*
+
+#MVS2008
+*.vcproj*
