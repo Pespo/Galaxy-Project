@@ -22,15 +22,20 @@
 
 int main( int argc, char **argv )
 {
-    size_t width = 1024, height = 768 ;
-    char* title = "galaxy project";
+    // Basic settings initialization
+    const size_t width = 1024, height = 768 ;
+    char* title = "Galaxy Project - Guillaume Albespy & Guillaume Bréda";
 
-    // Initialise GLFW
-    Application* galaxy = new Application(width, height, title);
-
-	do{
-
-	} while(true==true);
+    try {
+        Application galaxy(width, height, title);
+        galaxy.loop();
+        return EXIT_SUCCESS;
+    } catch (std::exception &e) {
+        std::cerr << e.what() << std::endl;
+    } catch (...) {
+        std::cerr << "Something very bad happened..." << std::endl;
+    }
+    return EXIT_FAILURE;
 
     exit( EXIT_SUCCESS );
 }

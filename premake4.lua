@@ -1,68 +1,68 @@
 solution "Galaxy project"
-   configurations { "Debug", "Release" }
+   configurations {"Debug", "Release"}
    platforms {"native", "x64", "x32"}
 
    -- TD3 Exercicse Shadow Mapping
-   project "galaxy_project"
+   project "src"
       kind "ConsoleApp"
       language "C++"
-      files { "galaxy_project/main.cpp", "galaxy_project/common/*.hpp", "galaxy_project/common/*.cpp", "galaxy_project/common/*.h" }
-      includedirs { "lib/glfw/include", "src", "common", "lib/" }
+      files {"src/main.cpp", "src/common/*.hpp", "src/common/*.cpp", "src/common/*.h", "src/shader/*"}
+      includedirs { "lib/glfw/include", "src/", "lib/"}
       links {"glfw", "glew", "stb_image"}
-      defines { "GLEW_STATIC" }
+      defines {"GLEW_STATIC"}
      
-      configuration { "linux" }
+      configuration {"linux"}
          links {"X11","Xrandr", "rt", "GL", "GLU", "pthread"}
        
-      configuration { "windows" }
+      configuration {"windows"}
          links {"glu32","opengl32", "gdi32", "winmm", "user32"}
 
-      configuration { "macosx" }
-         linkoptions { "-framework OpenGL", "-framework Cocoa", "-framework IOKit" }
+      configuration {"macosx"}
+         linkoptions {"-framework OpenGL", "-framework Cocoa", "-framework IOKit"}
        
       configuration "Debug"
-         defines { "DEBUG" }
-         flags { "Symbols" }
-         targetdir "bin/debug/galaxy_project/"
+         defines {"DEBUG"}
+         flags {"Symbols"}
+         targetdir "bin/debug/Galaxy_project/"
 
       configuration "Release"
-         defines { "NDEBUG" }
-         flags { "Optimize"}    
-         targetdir "bin/release/galaxy_project/"  
+         defines {"NDEBUG"}
+         flags {"Optimize"}    
+         targetdir "bin/release/Galaxy_project/"  
 
    -- GLFW Library
    project "glfw"
       kind "StaticLib"
       language "C"
-      files { "lib/glfw/lib/*.h", "lib/glfw/lib/*.c", "lib/glfw/include/GL/glfw.h" }
-      includedirs { "lib/glfw/lib", "lib/glfw/include"}
+      files {"lib/glfw/lib/*.h", "lib/glfw/lib/*.c", "lib/glfw/include/GL/glfw.h"}
+      includedirs {"lib/glfw/lib", "lib/glfw/include"}
 
       configuration {"linux"}
-         files { "lib/glfw/lib/x11/*.c", "lib/glfw/x11/*.h" }
-         includedirs { "lib/glfw/lib/x11" }
-         defines { "_GLFW_USE_LINUX_JOYSTICKS", "_GLFW_HAS_XRANDR", "_GLFW_HAS_PTHREAD" ,"_GLFW_HAS_SCHED_YIELD", "_GLFW_HAS_GLXGETPROCADDRESS" }
-         buildoptions { "-pthread" }
+         files {"lib/glfw/lib/x11/*.c", "lib/glfw/x11/*.h"}
+         includedirs {"lib/glfw/lib/x11"}
+         defines {"_GLFW_USE_LINUX_JOYSTICKS", "_GLFW_HAS_XRANDR", "_GLFW_HAS_PTHREAD" ,"_GLFW_HAS_SCHED_YIELD", "_GLFW_HAS_GLXGETPROCADDRESS"}
+         buildoptions {"-pthread"}
        
       configuration {"windows"}
-         files { "lib/glfw/lib/win32/*.c", "lib/glfw/win32/*.h" }
-         includedirs { "lib/glfw/lib/win32" }
-         defines { "_GLFW_USE_LINUX_JOYSTICKS", "_GLFW_HAS_XRANDR", "_GLFW_HAS_PTHREAD" ,"_GLFW_HAS_SCHED_YIELD", "_GLFW_HAS_GLXGETPROCADDRESS" }
+         files {"lib/glfw/lib/win32/*.c", "lib/glfw/win32/*.h"}
+         includedirs {"lib/glfw/lib/win32"}
+         defines {"_GLFW_USE_LINUX_JOYSTICKS", "_GLFW_HAS_XRANDR", "_GLFW_HAS_PTHREAD" ,"_GLFW_HAS_SCHED_YIELD", "_GLFW_HAS_GLXGETPROCADDRESS"}
        
       configuration {"Macosx"}
-         files { "lib/glfw/lib/cocoa/*.c", "lib/glfw/lib/cocoa/*.h", "lib/glfw/lib/cocoa/*.m" }
-         includedirs { "lib/glfw/lib/cocoa" }
-         defines { }
-         buildoptions { " -fno-common" }
-         linkoptions { "-framework OpenGL", "-framework Cocoa", "-framework IOKit" }
+         files {"lib/glfw/lib/cocoa/*.c", "lib/glfw/lib/cocoa/*.h", "lib/glfw/lib/cocoa/*.m"}
+         includedirs {"lib/glfw/lib/cocoa"}
+         defines {}
+         buildoptions {" -fno-common"}
+         linkoptions {"-framework OpenGL", "-framework Cocoa", "-framework IOKit"}
 
       configuration "Debug"
-         defines { "DEBUG" }
-         flags { "Symbols" }
+         defines {"DEBUG"}
+         flags {"Symbols"}
          targetdir "bin/debug"
 
       configuration "Release"
-         defines { "NDEBUG" }
-         flags { "Optimize" }    
+         defines {"NDEBUG"}
+         flags {"Optimize"}    
          targetdir "bin/release"
 
    -- GLEW Library         
@@ -70,16 +70,16 @@ solution "Galaxy project"
       kind "StaticLib"
       language "C"
       files {"lib/glew/*.c", "lib/glew/*.h"}
-      defines { "GLEW_STATIC" }
+      defines {"GLEW_STATIC"}
 
       configuration "Debug"
-         defines { "DEBUG" }
-         flags { "Symbols" }
+         defines {"DEBUG"}
+         flags {"Symbols"}
          targetdir "bin/debug"
 
       configuration "Release"
-         defines { "NDEBUG" }
-         flags { "Optimize" }    
+         defines {"NDEBUG"}
+         flags {"Optimize"}    
          targetdir "bin/release"
 
    -- stb_image Library         
@@ -89,11 +89,11 @@ solution "Galaxy project"
       files {"lib/stb_image/*.c", "lib/stb_image/*.h"}
 
       configuration "Debug"
-         defines { "DEBUG" }
-         flags { "Symbols" }
+         defines {"DEBUG"}
+         flags {"Symbols"}
          targetdir "bin/debug"
 
       configuration "Release"
-         defines { "NDEBUG" }
-         flags { "Optimize" }    
+         defines {"NDEBUG"}
+         flags {"Optimize"}    
          targetdir "bin/release"
