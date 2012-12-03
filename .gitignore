@@ -11,3 +11,4 @@ ipch/*
 
 #MVS2008
 *.vcproj*
+*.ncb
