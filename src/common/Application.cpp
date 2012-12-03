@@ -54,8 +54,73 @@ Application::Application(size_t width, size_t height, char* title) {
     }
 }
 
-Application::~Application(){
+Application::~Application() {
     glfwTerminate();
+}
+
+GLuint Application::loadTexture(const char* fileName, int comp) {
+    int w;
+    int h;
+    int c = comp;
+    unsigned char *data;
+
+    try {
+        // Loads the image from a ppm file to an unsigned char array
+        data = stbi_load(fileName, &w, &h, &c, c);
+     }
+     catch (...) {
+         return 0;
+    }   
+    //Selects our current unit texture
+    glActiveTexture(GL_TEXTURE0);
+
+    // Allocates a texture id
+    GLuint textureID = 0;
+    glGenTextures(1, &textureID);
+    // Selects our current texture
+    glBindTexture(GL_TEXTURE_2D, textureID);
+
+
+    // How to handle not normalised uvs
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    // How to handle interpolation from texels to fragments
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    // Specifies which image will be used for this texture objet
+    switch(comp) {
+        case 1 :
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, data);
+            break;
+        case 2 :
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, w, h, 0, GL_RG, GL_UNSIGNED_BYTE, data);
+            break;
+        case 3 :
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+            break;
+        case 4 :
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+            break;
+        default :
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+            break;
+    }
+
+    fprintf(stderr, "Texture %dx%d:%d\n", w, h, c);
+    
+    return textureID;
+};
+
+void Application::loadShader(ShaderGLSL & shader,  const char * path) {
+
+    int status = load_shader_from_file(shader, path, ShaderGLSL::VERTEX_SHADER | ShaderGLSL::FRAGMENT_SHADER);
+    if ( status == -1 )
+    {
+        std::cerr << "Error on loading " << path << std::endl;
+        //exit( EXIT_FAILURE );
+    }
+
 }
 
 void Application::loop() {
