@@ -1,10 +1,14 @@
 #pragma once
+#include "GLCommon.hpp"
+#include "ShaderGLSL.hpp"
 
-//! General camera data + transformations
-class Application
-{
+class Application {
+
 public :
 	Application(size_t width, size_t height, char* title);
 	~Application();
-	//! Computes and returns view matrix
-	};
+
+	GLuint loadTexture(const char* fileName, int comp);
+	void loadShader(ShaderGLSL & shader,  const char * path);
+
+};
