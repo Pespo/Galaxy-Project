@@ -1,0 +1,51 @@
+#pragma once
+#include "GLCommon.hpp"
+
+//#include "math/Vector3f.hpp"
+#include "Color.hpp"
+#include <vector>
+
+// An object made of solid triangles
+struct Object {
+    const size_t id;
+
+    Object(size_t id, GLenum primitivesType = GL_TRIANGLES);
+    //Object(Object &obj);
+    ~Object();
+
+    void drawObject() const;
+    void sendPrimitives(const std::vector<float*> &vertices, const std::vector<GLuint> &indices);
+    void sendNormals(const std::vector<float*> &normals);
+    void sendColors(const std::vector<Color> &colors);
+    void sendUvs(const std::vector<std::pair<float, float> > &uvs);
+    void setTextureId(GLuint id);
+    GLuint getTextureId();
+
+    GLboolean hasPrimitives() const {
+        return m_bPrimitives;
+    }
+    GLboolean hasNormals() const {
+        return m_bNormals;
+    }
+    GLboolean hasUvs() const {
+        return m_bUvs;
+    }
+    GLboolean hasColors() const {
+        return colorsVboId;
+    }
+private:
+    GLuint vaoId; // vertex array objet id
+    GLuint verticesVboId; // vertices buffer id
+    GLuint normalsVboId; // normals buffer id
+    GLuint uvsVboId; // normals buffer id
+    GLuint colorsVboId; // normals buffer id
+    GLuint indicesVboId; // indices buffer id
+    GLuint nbIndices; // number of indices necessary to draw all the triangles
+    GLuint textureId; // id of the texture
+    GLenum primitivesType; // GL_TRIANGLES or GL_LINES
+    GLboolean m_bPrimitives; // Are the primitives filled ?
+    GLboolean m_bNormals; // Are the normals filled ?
+    GLboolean m_bUvs; // Are the uv coordinates filled ?
+    GLboolean m_bColors; // Are the colors filled ?
+};
+

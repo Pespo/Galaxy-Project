@@ -25,7 +25,6 @@
 
 int main( int argc, char **argv )
 {
-<<<<<<< HEAD:src/main.cpp
     // Basic settings initialization
     const size_t width = 1024, height = 768 ;
     char* title = "Galaxy Project - Guillaume Albespy & Guillaume Bréda";
@@ -48,7 +47,7 @@ int main( int argc, char **argv )
             /************* Initialisation des shaders*****************/   
             // Load gbuffer shader
             ShaderGLSL gbuffer_shader;
-            galaxy.loadShader(gbuffer_shader, "galaxy_project/shader/3_gbuffer.glsl");
+            galaxy.loadShader(gbuffer_shader, "src/shader/3_gbuffer.glsl");
             // Compute locations for gbuffer_shader
             GLuint gbuffer_projectionLocation = glGetUniformLocation(gbuffer_shader.program, "Projection");
             GLuint gbuffer_viewLocation = glGetUniformLocation(gbuffer_shader.program, "View");
@@ -59,14 +58,14 @@ int main( int argc, char **argv )
 
             // Load Blit shader
             ShaderGLSL blit_shader;
-            galaxy.loadShader(blit_shader, "galaxy_project/shader/3_blit.glsl");
+            galaxy.loadShader(blit_shader, "src/shader/3_blit.glsl");
             // Compute locations for blit_shader
             GLuint blit_projectionLocation = glGetUniformLocation(blit_shader.program, "Projection");
             GLuint blit_tex1Location = glGetUniformLocation(blit_shader.program, "Texture1");
 
             // Load light accumulation shader
             ShaderGLSL laccum_shader;
-            galaxy.loadShader(laccum_shader, "galaxy_project/shader/3_laccum_spot.glsl");
+            galaxy.loadShader(laccum_shader, "src/shader/3_laccum_spot.glsl");
             float shadowBias = 0.001f;
             // Compute locations for light accumulation shader
             GLuint laccum_projectionLocation = glGetUniformLocation(laccum_shader.program, "Projection");
@@ -85,7 +84,7 @@ int main( int argc, char **argv )
 
             // Load shadow generation shader
             ShaderGLSL shadowgen_shader;
-            galaxy.loadShader(shadowgen_shader, "galaxy_project/shader/3_shadowgen.glsl");
+            galaxy.loadShader(shadowgen_shader, "src/shader/3_shadowgen.glsl");
             // Compute locations for shadow generation shader
             GLuint shadowgen_projectionLocation = glGetUniformLocation(shadowgen_shader.program, "Projection");
             GLuint shadowgen_viewLocation = glGetUniformLocation(shadowgen_shader.program, "View");
@@ -95,14 +94,12 @@ int main( int argc, char **argv )
 
         galaxy.loop();
         
-        return EXIT_SUCCESS;
+        exit( EXIT_SUCCESS );
     } catch (std::exception &e) {
         std::cerr << e.what() << std::endl;
     } catch (...) {
         std::cerr << "Something very bad happened..." << std::endl;
     }
-    return EXIT_FAILURE;
-
-    exit( EXIT_SUCCESS );
+    exit( EXIT_FAILURE);
 }
 

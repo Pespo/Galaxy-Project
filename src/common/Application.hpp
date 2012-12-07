@@ -1,4 +1,6 @@
 #pragma once
+#include "common/GLCommon.hpp"
+#include "common/ShaderGLSL.hpp"
 
 class Application {
 public :

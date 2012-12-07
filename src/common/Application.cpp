@@ -1,5 +1,6 @@
 #include "Application.hpp"
 
+#include "stb_image/stb_image.h"
 #include "imguiRenderGL.h"
 #include "GLCommon.hpp"
 #include "GL/glfw.h"
