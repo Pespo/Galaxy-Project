@@ -76,6 +76,6 @@ public:
     void drawObjectsOfScene();
 
 private:
-    //void setAppearance(const ObjectInstance &);
+    //void setAppearance(const ObjectInstance &instance);
 };
 

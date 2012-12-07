@@ -77,11 +77,6 @@ void Camera::zoom(float factor)
 	}
 }
 
-const float * Camera::perspectiveProjection()
-{		
-	return m_perspective;
-}
-
 void Camera::setViewport(float x0, float y0, float xn, float yn)
 {
 	m_viewport[0] = x0;

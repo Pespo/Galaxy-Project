@@ -96,7 +96,7 @@ void Scene::setDrawnObjectTextureID(GLuint indexDrawnObject, GLuint textureUnit,
 
 // Sets the light
 void Scene::setDefaultColor(const Color &color) {
-    defaultColor = color;
+    defaultColor = color;   
     for (size_t i = 0; i < drawnObjects.size(); ++i)
         drawnObjects[i].color = defaultColor;
 }
@@ -121,35 +121,34 @@ void Scene::setLight(GLfloat * position, GLfloat power) {
     lightPower = power;
 }
 
-/*Todo when camera done
-    // Decides what will elements drawn after this call will look like
-    /*void Scene::setAppearance(const ObjectInstance &instance) {
-        const size_t shaderId = instance.shaderId;
+// Decides what will elements drawn after this call will look like
+/*void Scene::setAppearance(const ObjectInstance &instance) {
+    const size_t shaderId = instance.shaderId;
 
-        // We use the specific values of model per object
-        setMatricesInShader(shaderId, instance.transformation, pCamera->getView(), pCamera->getPosition(), pCamera->getProjection());
-        glUniform4fv(glGetUniformLocation(shaderId, "color"), 1, instance.color);
+    // We use the specific values of model per object
+    setMatricesInShader(shaderId, instance.transformation, pCamera->view(), pCamera->position(), pCamera->perspectiveProjection());
+    glUniform4fv(glGetUniformLocation(shaderId, "color"), 1, instance.color);
 
-        // Specifies which VBO were filled
-        const Object * pObject = storedObjects[instance.objectId];
-        assert(pObject);
-        setFilledDataInShader(shaderId, pObject->hasPrimitives(), pObject->hasNormals(), pObject->hasUvs(), pObject->hasColors());
-        
-        // Sets the light in the current shader
-        setLightInShader(shaderId, lightPosition, lightPower);
-        
-        //Selects our current texture for unit 0
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, drawnObjectsTexture0IDs[instance.objectId]);
-        
-        //Selects our current texture for unit 1
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, drawnObjectsTexture1IDs[instance.objectId]);
-        
-        setTextureUnitsInShader(shaderId);
-        
-        glCullFace(GL_BACK);
-    }*/
+    // Specifies which VBO were filled
+    const Object * pObject = storedObjects[instance.objectId];
+    assert(pObject);
+    setFilledDataInShader(shaderId, pObject->hasPrimitives(), pObject->hasNormals(), pObject->hasUvs(), pObject->hasColors());
+    
+    // Sets the light in the current shader
+    setLightInShader(shaderId, lightPosition, lightPower);
+    
+    //Selects our current texture for unit 0
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, drawnObjectsTexture0IDs[instance.objectId]);
+    
+    //Selects our current texture for unit 1
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, drawnObjectsTexture1IDs[instance.objectId]);
+    
+    setTextureUnitsInShader(shaderId);
+    
+    glCullFace(GL_BACK);
+}*/
 
 // Draw all Objects
 void Scene::drawObjectsOfScene() {

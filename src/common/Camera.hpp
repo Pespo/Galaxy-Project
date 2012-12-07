@@ -9,7 +9,7 @@ public :
 	//! Computes and returns view matrix
 	const float * worldToView();
 	//! Returns view matrix
-	const float * perspectiveProjection();
+	const float * perspectiveProjection() const { return m_perspective; };
 	//! Turn around the point of interest
 	void turn(float phi, float theta);
 	//! Shift the point of interest along the view plane
@@ -24,6 +24,8 @@ public :
 	void centerOn(float center[4], float halfDists[4]);
 	//! Returns camera position
 	const float * position() const { return m_eye; }
+	//! Returns view matrix
+	const float* view() const { return m_view; }
 	//! Returns near distance
 	float near() const { return m_near; }
 	//! Returns far distance

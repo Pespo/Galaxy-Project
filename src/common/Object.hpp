@@ -1,7 +1,5 @@
 #pragma once
 #include "GLCommon.hpp"
-
-//#include "math/Vector3f.hpp"
 #include "Color.hpp"
 #include <vector>
 
