@@ -9,12 +9,12 @@
 #include "Transform.hpp"
 
 Camera::Camera() :
-	m_phi(3.14/2.f),
-	m_theta(3.14/2.f),
+	m_phi(M_PI/2.f),
+	m_theta(M_PI/2.f),
 	m_radius(10.f),
 	m_near(0.1f),
 	m_far(100.f),
-	m_fov(60)		
+	m_fov(60.f)
 {
 	vec4fCopy(m_o, NULLVEC4f);
 	worldToView();
@@ -22,7 +22,9 @@ Camera::Camera() :
 
 Camera::~Camera()
 {}
+
 #include <iostream>
+
 const float * Camera::worldToView()
 {
 	m_eye[0] = cos(m_theta) * sin(m_phi) * m_radius + m_o[0];	
@@ -42,12 +44,12 @@ void Camera::turn(float phi, float theta)
 	m_theta += 1.f * theta;
 	m_phi   -= 1.f * phi;
 	if (m_phi >= (2 * M_PI) - 0.1 )
-		m_phi = 0.00001;
+		m_phi = 0.00001f;
 	else if (m_phi <= 0 )
-		m_phi = 2 * M_PI - 0.1;
+		m_phi = 2.f * M_PI - 0.1f;
 }
 
-void Camera::pan(float x, float y)
+void Camera::pan(float x, float y, float z)
 {
 	float up[4] = {0.f, (m_phi < M_PI)?1.f:-1.f, 0.f, 0.f};
 	float fwd[4] = {m_o[0] - m_eye[0], m_o[1] - m_eye[1], m_o[2] - m_eye[2], 0.f};
@@ -55,13 +57,16 @@ void Camera::pan(float x, float y)
 	float side[4];
 	vec3fCross(fwd, up, side);
 	vec3fNormalize(side, vec3fNorm(side));
-	vec3fCross(side, fwd, up);
+	vec3fCross(side, fwd, up); // if bug, throw away this line!
+	m_o[0] += fwd[0] * z * m_radius * 2;
+	m_o[1] += fwd[1] * z * m_radius * 2;
+	m_o[2] += fwd[2] * z * m_radius * 2;
 	m_o[0] += up[0] * y * m_radius * 2;
 	m_o[1] += up[1] * y * m_radius * 2;
 	m_o[2] += up[2] * y * m_radius * 2;
-	m_o[0] -= side[0] * x * m_radius * 2;
-	m_o[1] -= side[1] * x * m_radius * 2;
-	m_o[2] -= side[2] * x * m_radius * 2;		
+	m_o[0] += side[0] * x * m_radius * 2;
+	m_o[1] += side[1] * x * m_radius * 2;
+	m_o[2] += side[2] * x * m_radius * 2;		
 }
 
 void Camera::zoom(float factor)
@@ -92,7 +97,7 @@ void Camera::setPerspective(float near, float far, float fov, float ratio)
 	m_far = far;
 	m_fov = fov;
 	m_ratio = ratio;
-	perspective(fov, ratio, near, far, m_perspective );
+	perspective(fov, ratio, near, far, m_perspective);
 }
 
 void Camera::centerOn(float center[4], float halfDists[4])
