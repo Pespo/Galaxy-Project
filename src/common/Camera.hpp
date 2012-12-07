@@ -13,7 +13,7 @@ public :
 	//! Turn around the point of interest
 	void turn(float phi, float theta);
 	//! Shift the point of interest along the view plane
-	void pan(float x, float y);
+	void pan(float x, float y, float z);
 	//! Modify the radius around point of interest
 	void zoom(float factor);
 	//! Set the 4 corners of the viewport
@@ -30,7 +30,7 @@ public :
 	float far() const { return m_far; }
 private :
 	Camera(const Camera &);
-	Camera & operator=(const Camera & );
+	Camera & operator=(const Camera &);
 
 	//! Angle with x axis
 	float m_phi;

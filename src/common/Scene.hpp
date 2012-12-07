@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ShaderGLSL.hpp"
 #include "GLCommon.hpp"
 #include "Camera.hpp"
 #include "Color.hpp"
@@ -24,6 +25,26 @@ class Scene {
 			mat4fCopy(transformation, transformation1);
         }
     };
+
+    struct GUIStates {
+        bool panLock;
+		bool turnLock;
+        bool zoomLock;
+        int lockPositionX;
+        int lockPositionY;
+        int camera;
+        double time;
+        bool playing;
+        const float PAN_SPEED;
+        const float ZOOM_SPEED;
+        const float MOUSE_TURN_SPEED;
+
+        GUIStates() : PAN_SPEED(0.005f), ZOOM_SPEED(0.005f), MOUSE_TURN_SPEED(0.005f) {}
+    };
+
+    /*float PAN_SPEED = 0.005f;
+    float ZOOM_SPEED = 0.005f;
+    float MOUSE_TURN_SPEED = 0.005f;*/
  
 	GLuint* drawnObjectsTexture0IDs;
 	GLuint* drawnObjectsTexture1IDs;    
@@ -57,6 +78,12 @@ public:
     ~Scene();
 
     Camera* pCamera; // Camera used to watch the scene
+    GUIStates guiStates; // Useful camera states
+
+    void init_gui_states(GUIStates & guiStates);
+
+    GLuint loadTexture(const char* fileName, int comp);
+    void loadShader(ShaderGLSL & shader,  const char * path);
 
     Object& createObject(GLenum primitiveType);
     GLuint addObjectToDraw(GLuint indexStoredObject, GLuint shaderID = defaultShaderID);
@@ -75,7 +102,8 @@ public:
 
     void drawObjectsOfScene();
 
+    void updateCamera(int mousex, int mousey, int zButton, int qButton, int sButton, int dButton);
+
 private:
     //void setAppearance(const ObjectInstance &);
 };
-

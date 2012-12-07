@@ -3,7 +3,10 @@
 #include "Camera.hpp"
 #include "Object.hpp"
 #include "Color.hpp"
+#include "Transform.hpp"
 
+#include "stb_image/stb_image.h"
+#include "GL/glfw.h"
 #include <stdexcept>
 #include <exception>
 #include <iostream>
@@ -47,6 +50,137 @@ Scene::~Scene() {
         delete storedObjects[i];
 	delete [] drawnObjectsTexture0IDs;
 	delete [] drawnObjectsTexture1IDs;
+}
+
+void Scene::init_gui_states(GUIStates & guiStates) {
+    guiStates.panLock = false;
+    guiStates.zoomLock = false;
+    guiStates.lockPositionX = 0;
+    guiStates.lockPositionY = 0;
+    guiStates.camera = 0;
+    guiStates.time = 0.0;
+    guiStates.playing = false;
+}
+
+GLuint Scene::loadTexture(const char* fileName, int comp) {
+    int w;
+    int h;
+    int c = comp;
+    unsigned char *data;
+
+    try {
+        // Loads the image from a ppm file to an unsigned char array
+        data = stbi_load(fileName, &w, &h, &c, c);
+     }
+     catch (...) {
+         return 0;
+    }   
+    //Selects our current unit texture
+    glActiveTexture(GL_TEXTURE0);
+
+    // Allocates a texture id
+    GLuint textureID = 0;
+    glGenTextures(1, &textureID);
+    // Selects our current texture
+    glBindTexture(GL_TEXTURE_2D, textureID);
+
+
+    // How to handle not normalised uvs
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    // How to handle interpolation from texels to fragments
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    // Specifies which image will be used for this texture objet
+    switch(comp) {
+        case 1 :
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, data);
+            break;
+        case 2 :
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, w, h, 0, GL_RG, GL_UNSIGNED_BYTE, data);
+            break;
+        case 3 :
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+            break;
+        case 4 :
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+            break;
+        default :
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+            break;
+    }
+
+    fprintf(stderr, "Texture %dx%d:%d\n", w, h, c);
+    
+    return textureID;
+};
+
+void Scene::loadShader(ShaderGLSL & shader,  const char * path) {
+
+    int status = load_shader_from_file(shader, path, ShaderGLSL::VERTEX_SHADER | ShaderGLSL::FRAGMENT_SHADER);
+    if ( status == -1 )
+    {
+        std::cerr << "Error on loading " << path << std::endl;
+        //exit( EXIT_FAILURE );
+    }
+
+}
+
+void Scene::updateCamera(int mousex, int mousey, int zButton, int qButton, int sButton, int dButton) {
+	if(zButton == GLFW_PRESS || sButton == GLFW_PRESS)
+        guiStates.zoomLock = true;
+    else
+        guiStates.zoomLock = false;
+
+    if( qButton == GLFW_PRESS || dButton == GLFW_PRESS )
+        guiStates.panLock = true;
+    else
+        guiStates.panLock = false;
+
+	int diffLockPositionX = mousex - guiStates.lockPositionX;
+	int diffLockPositionY = mousey - guiStates.lockPositionY;
+	if (guiStates.turnLock)
+	{
+	    pCamera->turn(diffLockPositionY * guiStates.MOUSE_TURN_SPEED,
+	                diffLockPositionX * guiStates.MOUSE_TURN_SPEED);
+
+	}
+	if (guiStates.zoomLock)
+	{
+	    float panZ = 0.0;
+	    if (zButton == GLFW_PRESS)
+	        panZ = 1.f;
+	    else if (sButton == GLFW_PRESS)
+	        panZ = -1.f;
+	    pCamera->pan(0, 0, panZ * guiStates.ZOOM_SPEED);
+	}
+	if (guiStates.panLock)
+	{
+	    float panX = 0.0;
+	    if (dButton == GLFW_PRESS)
+	        panX = 1.f;
+	    else if (qButton == GLFW_PRESS)
+	        panX = -1.f;
+	    pCamera->pan(panX * guiStates.PAN_SPEED, 0, 0);
+	}
+	guiStates.lockPositionX = mousex;
+	guiStates.lockPositionY = mousey;
+
+	float projection[16];
+    float worldToView[16];
+    float objectToWorld[16];
+    float cameraPosition[4];
+    float orthoProj[16];
+    ortho(-0.5, 0.5, -0.5, 0.5, -1.0, 1.0, orthoProj);
+    mat4fCopy(projection, pCamera->perspectiveProjection());
+    mat4fCopy(worldToView, pCamera->worldToView());
+    mat4fToIdentity(objectToWorld);
+    vec4fCopy(cameraPosition, pCamera->position());
+    float viewProjection[16];     
+    float iviewProjection[16];       
+    mat4fMul( worldToView, projection, viewProjection);
+    mat4fInverse(viewProjection, iviewProjection);
 }
 
 // Adds the object in the Objects library array, 
