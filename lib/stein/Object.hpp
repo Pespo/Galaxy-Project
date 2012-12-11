@@ -1,7 +1,13 @@
-#pragma once
-#include "GLCommon.hpp"
+#ifndef __OBJECT_HPP__
+#define __OBJECT_HPP__
+
+#include "GLHeaders.hpp"
+
+#include "math/Vector3f.hpp"
 #include "Color.hpp"
 #include <vector>
+
+namespace stein {
 
 // An object made of solid triangles
 struct Object {
@@ -12,8 +18,8 @@ struct Object {
     ~Object();
 
     void drawObject() const;
-    void sendPrimitives(const std::vector<float*> &vertices, const std::vector<GLuint> &indices);
-    void sendNormals(const std::vector<float*> &normals);
+    void sendPrimitives(const std::vector<Vector3f> &vertices, const std::vector<GLuint> &indices);
+    void sendNormals(const std::vector<Vector3f> &normals);
     void sendColors(const std::vector<Color> &colors);
     void sendUvs(const std::vector<std::pair<float, float> > &uvs);
     void setTextureId(GLuint id);
@@ -47,3 +53,6 @@ private:
     GLboolean m_bColors; // Are the colors filled ?
 };
 
+} // namespace stein
+
+#endif //__OBJECT_HPP__

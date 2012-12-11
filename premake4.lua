@@ -1,36 +1,36 @@
 solution "Galaxy project"
-   configurations {"Debug", "Release"}
+   configurations { "Debug", "Release" }
    platforms {"native", "x64", "x32"}
 
-   -- TD3 Exercicse Shadow Mapping
-   project "src"
+   -- galaxy_project
+   project "galaxy_project"
       kind "ConsoleApp"
       language "C++"
-      files {"src/main.cpp", "src/common/*.hpp", "src/common/*.cpp", "src/common/*.h", "src/shader/*"}
-      includedirs { "lib/glfw/include", "src/", "lib/"}
-      links {"glfw", "glew", "stb_image"}
-      defines {"GLEW_STATIC"}
+      files { "src/*.hpp", "src/*.cpp", "src/*.h" }
+      includedirs { "lib/glfw/include", "src", "lib/" }
+      links { "glew", "glfw", "stb_image", "stein"}
+      defines { "GLEW_STATIC" }
      
-      configuration {"linux"}
+      configuration { "linux" }
          links {"X11","Xrandr", "rt", "GL", "GLU", "pthread"}
        
-      configuration {"windows"}
+      configuration { "windows" }
          links {"glu32","opengl32", "gdi32", "winmm", "user32"}
 
-      configuration {"macosx"}
-         linkoptions {"-framework OpenGL", "-framework Cocoa", "-framework IOKit"}
+      configuration { "macosx" }
+         linkoptions { "-framework OpenGL", "-framework Cocoa", "-framework IOKit" }
        
       configuration "Debug"
-         defines {"DEBUG"}
-         flags {"Symbols"}
-         targetdir "bin/debug/Galaxy_project/"
+         defines { "DEBUG" }
+         flags { "Symbols" }
+         targetdir "bin/debug/galaxy_project/"
 
       configuration "Release"
-         defines {"NDEBUG"}
-         flags {"Optimize"}    
-         targetdir "bin/release/Galaxy_project/"  
+         defines { "NDEBUG" }
+         flags { "Optimize"}    
+         targetdir "bin/release/galaxy_project/"  
 
-   -- GLFW Library
+	-- GLFW Library
    project "glfw"
       kind "StaticLib"
       language "C"
@@ -64,22 +64,22 @@ solution "Galaxy project"
          defines {"NDEBUG"}
          flags {"Optimize"}    
          targetdir "bin/release"
-
+		 
    -- GLEW Library         
    project "glew"
       kind "StaticLib"
       language "C"
       files {"lib/glew/*.c", "lib/glew/*.h"}
-      defines {"GLEW_STATIC"}
+      defines { "GLEW_STATIC" }
 
       configuration "Debug"
-         defines {"DEBUG"}
-         flags {"Symbols"}
+         defines { "DEBUG" }
+         flags { "Symbols" }
          targetdir "bin/debug"
 
       configuration "Release"
-         defines {"NDEBUG"}
-         flags {"Optimize"}    
+         defines { "NDEBUG" }
+         flags { "Optimize" }    
          targetdir "bin/release"
 
    -- stb_image Library         
@@ -89,11 +89,37 @@ solution "Galaxy project"
       files {"lib/stb_image/*.c", "lib/stb_image/*.h"}
 
       configuration "Debug"
-         defines {"DEBUG"}
-         flags {"Symbols"}
+         defines { "DEBUG" }
+         flags { "Symbols" }
          targetdir "bin/debug"
 
       configuration "Release"
-         defines {"NDEBUG"}
-         flags {"Optimize"}    
+         defines { "NDEBUG" }
+         flags { "Optimize" }    
          targetdir "bin/release"
+		 
+   -- Stein Library         
+   project "stein"
+      kind "StaticLib"
+      language "C++"
+      files {"lib/stein/*.cpp",	"lib/stein/*.hpp", "lib/stein/*.h", "lib/stein/math/*.cpp", "lib/stein/math/*.hpp", "lib/stein/math/*.h"}
+	  includedirs { "lib/", "lib/glfw/include" }
+	  links {"glew", "glfw" }
+      defines { "GLEW_STATIC" }
+     
+      configuration { "linux" }
+         links {"X11","Xrandr", "rt", "GL", "GLU", "pthread"}
+       
+      configuration { "windows" }
+         links {"glu32","opengl32", "gdi32", "winmm", "user32"}
+
+      configuration "Debug"
+         defines { "DEBUG" }
+         flags { "Symbols" }
+         targetdir "bin/debug"
+
+      configuration "Release"
+         defines { "NDEBUG" }
+         flags { "Optimize" }    
+         targetdir "bin/release"
+		 

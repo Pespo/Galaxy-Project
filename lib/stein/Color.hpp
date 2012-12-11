@@ -1,8 +1,11 @@
-#pragma once
+#ifndef COLOR_HPP_
+#define COLOR_HPP_
 
 #include <iostream>
 #include <cassert>
+#include <cmath>
 
+namespace stein {
 
 struct Color {
     float r, g, b, a;
@@ -32,3 +35,6 @@ struct Color {
     static Color BLUE;
 };
 
+} // namespace stein
+
+#endif /* COLOR_HPP_ */

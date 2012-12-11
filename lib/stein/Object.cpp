@@ -3,6 +3,8 @@
 
 using namespace std;
 
+namespace stein {
+
 struct ArrayBinder {
     ArrayBinder(GLuint id) :
         id(id) {
@@ -79,7 +81,7 @@ static inline void pushArray(const GLenum attribute, const GLuint vboId, const G
 }
 
 // Sends an array of vertices and an array of indices in buffers on the GPU
-void Object::sendPrimitives(const vector<float*> &vertices, const vector<GLuint> &indices) {
+void Object::sendPrimitives(const vector<Vector3f> &vertices, const vector<GLuint> &indices) {
     ArrayBinder binder(vaoId);
 
     const GLenum attributePosition = 0; // First attribute in the shader is position
@@ -95,7 +97,7 @@ void Object::sendPrimitives(const vector<float*> &vertices, const vector<GLuint>
 }
 
 // Sends an array of normals in buffers on the GPU
-void Object::sendNormals(const vector<float*> &values) {
+void Object::sendNormals(const vector<Vector3f> &values) {
     ArrayBinder binder(vaoId);
 
     const GLenum attributeNormal = 1; // Second attribute in the shader is the normal
@@ -139,3 +141,5 @@ void Object::drawObject() const {
     // Draw the elements stored by the vao
     glDrawElements(primitivesType, nbIndices, GL_UNSIGNED_INT, 0);
 }
+
+} // namespace stein
