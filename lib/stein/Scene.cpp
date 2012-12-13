@@ -97,7 +97,7 @@ void Scene::setAppearance(const ObjectInstance &instance) {
     glUseProgram(shaderId); // From now on, this shader will be used.
 
     // We use the specific values of model per object
-    setMatricesInShader(shaderId, instance.transformation, camera.getView(), camera.getPosition(), camera.getProjection());
+    setMatricesInShader(shaderId, instance.transformation, pCamera->getView(), pCamera->getPosition(), pCamera->getProjection());
     glUniform4fv(glGetUniformLocation(shaderId, "color"), 1, instance.color);
 
     // Specifies which VBO were filled

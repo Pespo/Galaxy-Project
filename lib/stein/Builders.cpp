@@ -11,6 +11,7 @@
 #include <sstream>
 #include <cstdlib>
 #include <cfloat>
+#define M_PI 3.14
 
 using namespace std;
 
@@ -54,6 +55,136 @@ void buildSquare(Object &object, const GLfloat side, MeshBuilder & builder) {
     // Sends the data into buffers on the GPU
     object.sendPrimitives(vertices, indices);
 }
+
+// Builds one Cube
+void buildCube(Object &object, const GLfloat side, MeshBuilder & builder) {
+    builder.addVertex(-side, -side, side); // 0 - front bottom left
+    builder.addVertex(side, -side, side); // 1 - front bottom right
+    builder.addVertex(-side, side, side); // 2 - front top left
+    builder.addVertex(side, side, side); // 3 - front top right
+    builder.addVertex(-side, -side, -side); // 4 - back bottom left
+    builder.addVertex(side, -side, -side); // 5 - back bottom right
+    builder.addVertex(-side, side, -side); // 6 - back top left
+    builder.addVertex(side, side, -side); // 7 - back top right
+
+    builder.addFace(0, 4, 2); builder.addFace(2, 4, 6); // left
+    builder.addFace(1, 5, 3); builder.addFace(3, 5, 7); // right
+    builder.addFace(2, 3, 6); builder.addFace(6, 3, 7); // top
+    builder.addFace(0, 1, 4); builder.addFace(4, 1, 5); // bottom
+
+    vector<unsigned int> indices;
+    vector<Vector3f> vertices;
+    vector<Vector3f> normals;
+    vector<UV> uvs;
+
+    builder.unpack(indices, vertices, normals, uvs);
+
+    // Sends the data into buffers on the GPU
+    object.sendPrimitives(vertices, indices);
+}
+
+void buildSphere(Object &object, const float radius, size_t discLat, size_t discLong, MeshBuilder & builder){ 
+
+    //object->nbVertices = (90 / discLat) * (360 / discLong) * 6 *2; 
+    //object->nbIndices  = (90 / discLat) * (360 / discLong) * 6 *2; 
+    
+    //GLfloat deltaLat=(M_PI/2.0)/20; 
+    //GLfloat deltaLong=(2*M_PI)/discAngle; 
+        
+    //GLfloat vertices[object->nbVertices*4]; 
+    //GLuint indices[object->nbIndices*4]; 
+    //GLfloat normals[object->nbVertices*4]; 
+    GLuint nbVertices = (90 / discLat) * (360 / discLong) * 6 *2;
+    //GLuint indexVertices = 0; 
+    //GLdouble a; 
+    GLdouble b; 
+      
+    GLdouble aLong; 
+    //GLdouble bLat; 
+  
+    // north hemisphere 
+    for( b = 0; b <= 90 - discLat; b+=discLat){ 
+              
+        for( aLong = 0; aLong <= 360 - discLong; aLong+=discLong){ 
+            
+             //first triangle 
+            builder.addVertex(  radius * sin((aLong) / 180 * M_PI) * sin((b) / 180 * M_PI), //– H 
+                                radius * cos((b) / 180 * M_PI), //– Z 
+                                radius * cos((aLong) / 180 * M_PI) * sin((b) / 180 * M_PI) ) ; //+ K 
+
+            builder.addVertex(  radius * sin((aLong + discLong) / 180 * M_PI) * sin((b) / 180 * M_PI), //– H 
+                                radius * cos((b) / 180 * M_PI), //– Z 
+                                radius * cos((aLong + discLong) / 180 * M_PI) * sin((b ) / 180 * M_PI) ); //+ K 
+              
+            builder.addVertex(  radius * sin((aLong) / 180 * M_PI) * sin((b + discLat) / 180 * M_PI), //– H 
+                                radius * cos((b + discLat) / 180 * M_PI), //– Z 
+                                radius * cos((aLong) / 180 * M_PI) * sin((b + discLat) / 180 * M_PI) ); //+ K 
+              
+            //second triangle 
+            builder.addVertex(  radius * sin((aLong + discLong) / 180 * M_PI) * sin((b) / 180 * M_PI), //– H 
+                                radius * cos((b) / 180 * M_PI), //– Z 
+                                radius * cos((aLong + discLong) / 180 * M_PI) * sin((b ) / 180 * M_PI) ); //+ K               
+              
+            builder.addVertex(  radius * sin((aLong + discLong) / 180 * M_PI) * sin((b+ discLat) / 180 * M_PI), 
+                                radius * cos((b+ discLat) / 180 * M_PI),  
+                                radius * cos((aLong + discLong) / 180 * M_PI) * sin((b+ discLat) / 180 * M_PI) ); 
+    
+            builder.addVertex(  radius * sin((aLong) / 180 * M_PI) * sin((b + discLat) / 180 * M_PI), //– H 
+                                radius * cos((b + discLat) / 180 * M_PI), //– Z 
+                                radius * cos((aLong) / 180 * M_PI) * sin((b + discLat) / 180 * M_PI) ); //+ K 
+        } 
+    } 
+      
+    // south hemisphere      
+    for( b = 0; b <= 90 - discLat; b+=discLat) 
+    { 
+        for( aLong = 0; aLong <= 360 - discLong; aLong+=discLong) 
+        { 
+            //first triangle            
+            builder.addVertex(  radius * sin((aLong) / 180 * M_PI) * sin((b) / 180 * M_PI), //– H 
+                                - radius * cos((b) / 180 * M_PI), //– Z 
+                                radius * cos((aLong) / 180 * M_PI) * sin((b) / 180 * M_PI) ); //+ K 
+
+            builder.addVertex(  radius * sin((aLong + discLong) / 180 * M_PI) * sin((b) / 180 * M_PI), //– H 
+                                - radius * cos((b) / 180 * M_PI), //– Z 
+                                radius * cos((aLong + discLong) / 180 * M_PI) * sin((b ) / 180 * M_PI) ); //+ K 
+                                
+              
+            builder.addVertex(  radius * sin((aLong) / 180 * M_PI) * sin((b + discLat) / 180 * M_PI), //– H 
+                                - radius * cos((b + discLat) / 180 * M_PI), //– Z 
+                                radius * cos((aLong) / 180 * M_PI) * sin((b + discLat) / 180 * M_PI) ); //+ K 
+
+            //second triangle 
+            builder.addVertex(  radius * sin((aLong + discLong) / 180 * M_PI) * sin((b) / 180 * M_PI), //– H 
+                                - radius * cos((b) / 180 * M_PI), //– Z 
+                                radius * cos((aLong + discLong) / 180 * M_PI) * sin((b ) / 180 * M_PI) ); //+ K 
+                                
+            builder.addVertex(  radius * sin((aLong + discLong) / 180 * M_PI) * sin((b+ discLat) / 180 * M_PI), 
+                                - radius * cos((b+ discLat) / 180 * M_PI),  
+                                radius * cos((aLong + discLong) / 180 * M_PI) * sin((b+ discLat) / 180 * M_PI) ); 
+                                
+            builder.addVertex(  radius * sin((aLong) / 180 * M_PI) * sin((b + discLat) / 180 * M_PI), //– H 
+                                - radius * cos((b + discLat) / 180 * M_PI), //– Z 
+                                radius * cos((aLong) / 180 * M_PI) * sin((b + discLat) / 180 * M_PI) ); //+ K 
+        } 
+    } 
+
+    for(int k=0; k<nbVertices; k+=3) 
+    { 
+        builder.addFace(k, k+1, k+2); 
+    } 
+      
+    vector<unsigned int> indices;
+    vector<Vector3f> vertices;
+    vector<Vector3f> normals;
+    vector<UV> uvs;
+
+    builder.unpack(indices, vertices, normals, uvs);
+
+    // Sends the data into buffers on the GPU
+    object.sendPrimitives(vertices, indices);  
+} 
+  
 
 struct Triple {
     GLuint a, b, c;

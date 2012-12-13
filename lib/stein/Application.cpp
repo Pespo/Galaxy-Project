@@ -154,8 +154,8 @@ void Application::animate() {
 
 void Application::loop() {
     do {
-        // Update camera view
-        //scene.updateCamera(_mousex, _mousey, _zButton, _qButton, _sButton, _dButton);
+        //Update camera view
+	    //_scene.updateCamera(_mousex, _mousey, _zButton, _qButton, _sButton, _dButton);
         //initTimers();
         eventDetection();
         double t = glfwGetTime();

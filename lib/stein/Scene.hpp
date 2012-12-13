@@ -44,7 +44,7 @@ public:
     Scene();
     ~Scene();
 
-    Camera camera; // Camera used to watch the scene
+    Camera* pCamera; // Camera used to watch the scene
 
     Object& createObject(GLenum primitiveType);
     GLuint addObjectToDraw(GLuint indexStoredObject);
