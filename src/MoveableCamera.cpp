@@ -18,10 +18,13 @@ MoveableCamera::~MoveableCamera()
 void MoveableCamera::cancelMovement() {
 	m_nextMove = Vector3f(0., 0., 0.);
 }
+void MoveableCamera::setMouseMovement(int deltaX, int deltaY) {
+	m_xMousePosition += 2. * (deltaX / 800.) /*(GLfloat)GalaxyApp::WIDTH*/;
+	m_yMousePosition += -2. * (deltaY / 800.) /*(GLfloat)GalaxyApp::HEIGHT*/;
+}
 
 // will be called when a key is pushed (add = true) and When the key is released (add = false)
-void MoveableCamera::setMovement(Direction to, bool add) {
-
+void MoveableCamera::setKeyMovement(Direction to) {
 	size_t axis;
 	if(to == FORWARD || to == BACKWARD)
 		axis = FORWARD;
@@ -29,32 +32,10 @@ void MoveableCamera::setMovement(Direction to, bool add) {
 		axis = RIGHT;
 	else
 		axis = UP;
-	float moveValue = (to == axis) ? 3. : -3.;
-	
-	if(add)
-		m_nextMove[axis] = moveValue; 
-	else
-		if(m_nextMove[axis] == moveValue)
-			m_nextMove[axis] = 0.;
+	float moveValue = (to == axis) ? 1. : -1.;
 }
 
 void MoveableCamera::move() {
-	int mouseRelX, mouseRelY;
-	#ifdef __APPLE__
-		//int mystery = 0;
-		//SDL_GetRelativeMouseState(mystery, &mouseRelX, &mouseRelY);
-	#else
-		glfwGetMousePos(&mouseRelX, &mouseRelY);
-		//SDL_GetRelativeMouseState(&mouseRelX, &mouseRelY);
-	#endif
-
-	//std::cout << "mouseRelX : " << mouseRelX << ", mouseRelY : " << mouseRelY << std::endl;
-
-	m_xMousePosition = -2. * ((400 - mouseRelX) / 800.) /*(GLfloat)GalaxyApp::WIDTH*/;
-	m_yMousePosition = 2. * ((400 - mouseRelY) / 800.) /*(GLfloat)GalaxyApp::HEIGHT*/;
-
-	//std::cout << "xMousePosition : " << m_xMousePosition << ", yMousePosition : " << m_yMousePosition << std::endl;
-
 	float moveStep=0.1;
 	Vector3f cameraNewPos;
 
@@ -85,6 +66,7 @@ void MoveableCamera::move() {
 		//Updates the position of the camera c
 		position[iCoord] = cameraNewPos[iCoord];
 	}
+	cancelMovement();
 }
 
 

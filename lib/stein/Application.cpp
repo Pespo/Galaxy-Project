@@ -17,12 +17,6 @@ Application::Application(size_t width, size_t height) : _width(width), _height(h
 
     _mouseScroll = 0;
 
-    // Key events initialization
-    _zButton = GLFW_RELEASE;
-    _qButton = GLFW_RELEASE;
-    _sButton = GLFW_RELEASE;
-    _dButton = GLFW_RELEASE;
-
     _frameDuration = 1. / 30.;
 
     // Initialisation of GLFW and creation of OpenGL context
@@ -125,18 +119,6 @@ void Application::hideCursor() {
 
 }
 
-void Application::eventDetection() {
-    // Get mouse motion
-    glfwGetMousePos(&_mouseXPos, &_mouseXPos);
-
-    // Get keys
-    _leftButton = glfwGetMouseButton( GLFW_MOUSE_BUTTON_LEFT );
-    _zButton = glfwGetKey('Z');
-    _qButton = glfwGetKey('Q');
-    _sButton = glfwGetKey('S');
-    _dButton = glfwGetKey('D');
-}
-
 void Application::renderFrame() {
     // Clears the window with current clearing color, clears also the depth buffer
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -157,7 +139,6 @@ void Application::loop() {
         //Update camera view
 	    //_scene.updateCamera(_mousex, _mousey, _zButton, _qButton, _sButton, _dButton);
         //initTimers();
-        eventDetection();
         double t = glfwGetTime();
         if(t - _lastStartTime >= _frameDuration) {
             animate();

@@ -3,31 +3,30 @@
 
 #include "Scene.hpp"
 #include "GLHeaders.hpp"
+#include "GL/glfw.h"
 
 namespace stein {
 
 class Application {
 public :
+	static Scene _scene;
+	static int _mouseXPos; // Mouse position - horizontal axis
+	static int _mouseYPos; // mouse position - vertical axis
+
 	Application(size_t width, size_t height);
 	virtual ~Application();
 
 	void loop();
 
 protected:
-	Scene _scene;
+	
 
 	// Mouse and keys management
 	bool _bShowMouse; // True if mouse is seeable
-	int _mouseXPos; // Mouse position - horizontal axis
-	int _mouseYPos; // mouse position - vertical axis
-	int _leftButton; // Mouse left button
+	
 	GLfloat _pressedMouseXPos; // Mouse position - updated only when left button down
     GLfloat _pressedMouseYPos; // mouse position - updated only when left button down
 	int _mouseScroll; // scroll value (up : ++, down : --)
-	int _zButton; // Z button
-	int _qButton; // Q button
-	int _sButton; // S button
-	int _dButton; // D button
 
 	void resize(GLuint w, GLuint h);
     void setBackgroundColor(const Color &color);
@@ -37,8 +36,6 @@ protected:
 
     virtual void renderFrame();
     virtual void animate();
-
-    virtual void eventDetection();
 
     size_t frameCount() const;
 

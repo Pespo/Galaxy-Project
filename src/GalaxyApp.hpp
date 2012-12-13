@@ -7,12 +7,9 @@ public:
 	//const static size_t WIDTH = 800;
 	//const static size_t HEIGHT = 800;
 
-	int _exMouseXPos;
-	int _exMouseYPos;
-
     GalaxyApp();
     ~GalaxyApp();
-    void GalaxyApp::renderFrame();
+    void renderFrame();
     void animate();
-    void GalaxyApp::eventDetection();
+    void initEventDetection();
 };

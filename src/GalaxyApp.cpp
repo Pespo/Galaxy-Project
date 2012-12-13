@@ -14,6 +14,23 @@
 using namespace std;
 using namespace stein;
 
+void GLFWCALL mouseEvent(int x, int y) {
+    // Mouse Camera Movement
+    ((MoveableCamera*)GalaxyApp::_scene.pCamera)->setMouseMovement(x - GalaxyApp::_mouseXPos, y - GalaxyApp::_mouseYPos);
+
+    // Updating mouse data
+    GalaxyApp::_mouseXPos = x;
+    GalaxyApp::_mouseYPos = y;
+}
+
+void GLFWCALL keyEvent(int key, int state) {
+    // Get keboard motion + movement setting
+    if(key == 'z' && state == GLFW_PRESS) { ((MoveableCamera*)GalaxyApp::_scene.pCamera)->setKeyMovement(Direction(FORWARD)); }
+    if(key == 'q' && state == GLFW_PRESS) { ((MoveableCamera*)GalaxyApp::_scene.pCamera)->setKeyMovement(Direction(LEFT)); }
+    if(key == 's' && state == GLFW_PRESS) { ((MoveableCamera*)GalaxyApp::_scene.pCamera)->setKeyMovement(Direction(BACKWARD)); }
+    if(key == 'd' && state == GLFW_PRESS) { ((MoveableCamera*)GalaxyApp::_scene.pCamera)->setKeyMovement(Direction(RIGHT)); }
+}
+
 GalaxyApp::GalaxyApp() : Application(800, 800) {
 
     const float size = .06;
@@ -29,6 +46,8 @@ GalaxyApp::GalaxyApp() : Application(800, 800) {
 
     _scene.addObjectToDraw(object.id);
     _scene.setDrawnObjectColor(object.id, Color(1., 1., 0.));
+
+    initEventDetection();
 }
 
 GalaxyApp::~GalaxyApp() {
@@ -51,46 +70,7 @@ void GalaxyApp::animate() {
     ((MoveableCamera*)_scene.pCamera)->move();
 }
 
-void GalaxyApp::eventDetection() {
-    // Get mouse motion
-    _exMouseXPos = _mouseXPos;
-    _exMouseYPos = _mouseYPos;
-    glfwGetMousePos(&_mouseXPos, &_mouseXPos);
-
-    // Get keys
-    _leftButton = glfwGetMouseButton( GLFW_MOUSE_BUTTON_LEFT );
-    _zButton = glfwGetKey('Z');
-    _qButton = glfwGetKey('Q');
-    _sButton = glfwGetKey('S');
-    _dButton = glfwGetKey('D');
-
-    //std::cout << "_dButton : " << _dButton << std::endl;  
-
-    char key = NULL;
-    if(glfwGetKey('Z')) { key = 'z'; }
-    else if(glfwGetKey('Q')) { key = 'q'; }
-    else if(glfwGetKey('S')) { key = 's'; }
-    else if(glfwGetKey('D')) { key = 'd'; }
-
-    std::cout << "key : " << key << std::endl;  
-            
-    Direction to = NOWHERE;
-    switch(key) {
-        case 'z' :
-            to = FORWARD; break;
-        case 's' :
-            to = BACKWARD; break;
-        case 'q' :
-            to = LEFT;  break;
-        case 'd' :
-            to = RIGHT; break;
-        default : break;
-    }
-    
-    std::cout << "to : " << to << std::endl;  
-    
-    if(to != NOWHERE)
-        ((MoveableCamera*)_scene.pCamera)->setMovement(to, true);
-    else
-        ((MoveableCamera*)_scene.pCamera)->setMovement(to, false);
+void GalaxyApp::initEventDetection() {
+    glfwSetMousePosCallback(mouseEvent);
+    glfwSetKeyCallback(keyEvent);
 }

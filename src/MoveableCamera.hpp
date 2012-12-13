@@ -25,7 +25,8 @@ public :
 
 	MoveableCamera(float height = 0.8);
 	virtual ~MoveableCamera();
-	void setMovement(Direction to, bool add);
+	void setMouseMovement(int deltaX, int deltaY);
+	void setKeyMovement(Direction to);
 	void cancelMovement();
 	void move();
 	/*
