@@ -9,21 +9,18 @@ namespace stein {
 
 class Application {
 public :
-	static Scene _scene;
-	static int _mouseXPos; // Mouse position - horizontal axis
-	static int _mouseYPos; // mouse position - vertical axis
-
 	Application(size_t width, size_t height);
 	virtual ~Application();
 
 	void loop();
 
 protected:
-	
+	Scene _scene;
 
 	// Mouse and keys management
 	bool _bShowMouse; // True if mouse is seeable
-	
+	int _mouseXPos; // Mouse position - horizontal axis
+	int _mouseYPos; // mouse position - vertical axis	
 	GLfloat _pressedMouseXPos; // Mouse position - updated only when left button down
     GLfloat _pressedMouseYPos; // mouse position - updated only when left button down
 	int _mouseScroll; // scroll value (up : ++, down : --)
@@ -31,8 +28,11 @@ protected:
 	void resize(GLuint w, GLuint h);
     void setBackgroundColor(const Color &color);
     void setTitle(const char* title);
-    void hideCursor();
+    void hideCursor(char key);
     void printFPS();
+
+    virtual void mouseEvent();
+    virtual void keyEvent();
 
     virtual void renderFrame();
     virtual void animate();

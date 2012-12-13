@@ -32,14 +32,14 @@ void MoveableCamera::setKeyMovement(Direction to) {
 		axis = RIGHT;
 	else
 		axis = UP;
-	float moveValue = (to == axis) ? 1. : -1.;
+	m_nextMove[axis] += (to == axis) ? 3. : -3.;
 }
 
 void MoveableCamera::move() {
 	float moveStep=0.1;
 	Vector3f cameraNewPos;
 
-	float moveOnX = - m_nextMove[0] * 0.1 /* MOVE_STEP*/;
+	float moveOnX = -m_nextMove[0] * 0.1 /* MOVE_STEP*/;
 	float moveOnY = m_nextMove[1] * 0.1 /* MOVE_STEP*/;
 	float moveOnZ = m_nextMove[2] * 0.1 /* MOVE_STEP*/;
 	for(size_t iCoord=0; iCoord<3; ++iCoord)

@@ -14,26 +14,12 @@
 using namespace std;
 using namespace stein;
 
-void GLFWCALL mouseEvent(int x, int y) {
-    // Mouse Camera Movement
-    ((MoveableCamera*)GalaxyApp::_scene.pCamera)->setMouseMovement(x - GalaxyApp::_mouseXPos, y - GalaxyApp::_mouseYPos);
-
-    // Updating mouse data
-    GalaxyApp::_mouseXPos = x;
-    GalaxyApp::_mouseYPos = y;
-}
-
-void GLFWCALL keyEvent(int key, int state) {
-    // Get keboard motion + movement setting
-    if(key == 'z' && state == GLFW_PRESS) { ((MoveableCamera*)GalaxyApp::_scene.pCamera)->setKeyMovement(Direction(FORWARD)); }
-    if(key == 'q' && state == GLFW_PRESS) { ((MoveableCamera*)GalaxyApp::_scene.pCamera)->setKeyMovement(Direction(LEFT)); }
-    if(key == 's' && state == GLFW_PRESS) { ((MoveableCamera*)GalaxyApp::_scene.pCamera)->setKeyMovement(Direction(BACKWARD)); }
-    if(key == 'd' && state == GLFW_PRESS) { ((MoveableCamera*)GalaxyApp::_scene.pCamera)->setKeyMovement(Direction(RIGHT)); }
-}
-
 GalaxyApp::GalaxyApp() : Application(800, 800) {
 
     const float size = .06;
+
+    exMouseXPos = 0;
+    exMouseYPos = 0;
 
     _scene.pCamera = new MoveableCamera();
     _scene.pCamera->setPerspectiveProjection(-size, size, -size, size, .1, 100);
@@ -46,8 +32,6 @@ GalaxyApp::GalaxyApp() : Application(800, 800) {
 
     _scene.addObjectToDraw(object.id);
     _scene.setDrawnObjectColor(object.id, Color(1., 1., 0.));
-
-    initEventDetection();
 }
 
 GalaxyApp::~GalaxyApp() {
@@ -70,7 +54,21 @@ void GalaxyApp::animate() {
     ((MoveableCamera*)_scene.pCamera)->move();
 }
 
-void GalaxyApp::initEventDetection() {
-    glfwSetMousePosCallback(mouseEvent);
-    glfwSetKeyCallback(keyEvent);
+void GalaxyApp::mouseEvent() {
+    // Updating mouse data
+    exMouseXPos = _mouseXPos;
+    exMouseYPos = _mouseYPos;
+    glfwGetMousePos(&_mouseXPos, &_mouseYPos);
+
+    // Mouse Camera Movement
+    ((MoveableCamera*)_scene.pCamera)->setMouseMovement(_mouseXPos - exMouseXPos, _mouseYPos - exMouseYPos);
+}
+
+void GalaxyApp::keyEvent() {
+    // Get keboard motion + movement setting
+    if(glfwGetKey('Z') == GLFW_PRESS) { ((MoveableCamera*)_scene.pCamera)->setKeyMovement(FORWARD); }
+    if(glfwGetKey('Q') == GLFW_PRESS) { ((MoveableCamera*)_scene.pCamera)->setKeyMovement(LEFT); }
+    if(glfwGetKey('S') == GLFW_PRESS) { ((MoveableCamera*)_scene.pCamera)->setKeyMovement(BACKWARD); }
+    if(glfwGetKey('D') == GLFW_PRESS) { ((MoveableCamera*)_scene.pCamera)->setKeyMovement(RIGHT); }
+    if(glfwGetKey('H') == GLFW_PRESS) { hideCursor('H'); }
 }

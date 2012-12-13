@@ -110,13 +110,13 @@ void Application::setTitle(const char* title) {
     glfwSetWindowTitle(title);
 }
 
-void Application::hideCursor() {
+void Application::hideCursor(char key) {
     if(_bShowMouse != true )
 		glfwDisable(GLFW_MOUSE_CURSOR);
 	else
 		glfwEnable(GLFW_MOUSE_CURSOR);
-    _bShowMouse = !_bShowMouse;
-
+    if(glfwGetKey(key) == GLFW_RELEASE)
+        _bShowMouse = !_bShowMouse;
 }
 
 void Application::renderFrame() {
@@ -130,6 +130,14 @@ void Application::renderFrame() {
     glfwSwapBuffers();
 }
 
+void Application::mouseEvent() {
+
+}
+
+void Application::keyEvent() {
+
+}
+
 void Application::animate() {
 
 }
@@ -141,6 +149,8 @@ void Application::loop() {
         //initTimers();
         double t = glfwGetTime();
         if(t - _lastStartTime >= _frameDuration) {
+            mouseEvent();
+            keyEvent();
             animate();
             renderFrame();
             _lastStartTime = t;
