@@ -26,6 +26,10 @@ struct Vector3f {
         return Vector3f(x + other.x, y + other.y, z + other.z);
     }
 
+	Vector3f operator+(const float value) const {
+        return Vector3f(x + value, y + value, z + value);
+    }
+
     Vector3f operator/(const float value) const {
         return Vector3f(x / value, y / value, z / value);
     }

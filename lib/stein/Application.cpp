@@ -24,7 +24,7 @@ Application::Application(size_t width, size_t height) : _width(width), _height(h
     // Customize a few OpenGL and GLFW states (after context creation)
     //customizeStates();
     glfwDisable(GLFW_MOUSE_CURSOR);
-    glfwSetMousePos( _width/2, _height/2 );
+    glfwSetMousePos( _mouseXPos, _mouseYPos );
 }
 
 // Cleans before the application can be closed
@@ -107,10 +107,12 @@ void Application::setBackgroundColor(const Color &color) {
     glClearColor(color.r, color.g, color.b, color.a);
 }
 
+// Sets the title of the window
 void Application::setTitle(const char* title) {
     glfwSetWindowTitle(title);
 }
 
+// Hides cursor by pressing key
 void Application::hideCursor(char key) {
     if(glfwGetKey(key) == GLFW_RELEASE)
         _bShowMouse = !_bShowMouse;

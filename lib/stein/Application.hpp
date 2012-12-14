@@ -33,9 +33,8 @@ protected:
 
     virtual void mouseEvent();
     virtual void keyEvent();
-
-    virtual void renderFrame();
     virtual void animate();
+    void renderFrame();
 
     size_t frameCount() const;
 
