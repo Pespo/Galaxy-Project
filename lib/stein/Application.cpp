@@ -106,10 +106,12 @@ void Application::setBackgroundColor(const Color &color) {
     glClearColor(color.r, color.g, color.b, color.a);
 }
 
+// Sets the title of the window
 void Application::setTitle(const char* title) {
     glfwSetWindowTitle(title);
 }
 
+// Hides cursor by pressing key
 void Application::hideCursor(char key) {
     if(_bShowMouse != true )
 		glfwDisable(GLFW_MOUSE_CURSOR);
@@ -124,7 +126,7 @@ void Application::renderFrame() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Draws scene
-    _scene.drawObjectsOfScene();
+    _pScene->drawObjectsOfScene();
     
     // Performs the buffer swap between the current shown buffer, and the one we just worked on
     glfwSwapBuffers();

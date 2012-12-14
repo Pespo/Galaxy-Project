@@ -15,7 +15,7 @@ public :
 	void loop();
 
 protected:
-	Scene _scene;
+	Scene* _pScene;
 
 	// Mouse and keys management
 	bool _bShowMouse; // True if mouse is seeable
@@ -33,9 +33,8 @@ protected:
 
     virtual void mouseEvent();
     virtual void keyEvent();
-
-    virtual void renderFrame();
     virtual void animate();
+    void renderFrame();
 
     size_t frameCount() const;
 
