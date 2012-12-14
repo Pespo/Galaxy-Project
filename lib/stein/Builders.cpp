@@ -56,6 +56,30 @@ void buildSquare(Object &object, const GLfloat side, MeshBuilder & builder) {
     object.sendPrimitives(vertices, indices);
 }
 
+void buildRepere(Object &object, MeshBuilder & builder)
+{
+    // The 3 vertices of a triangle
+    builder.addVertex(  0.0, 0.0, 0.0);
+    builder.addVertex(  1.0, 0.0, 0.0);
+    builder.addVertex(  0.0, 1.0, 0.0);
+    builder.addVertex(  0.0, 0.0, 1.0);
+
+    builder.addFace(0, 1, 2);
+    builder.addFace(0, 1, 3);
+    builder.addFace(0, 2, 3);
+    
+    vector<unsigned int> indices;
+    vector<Vector3f> vertices;
+    vector<Vector3f> normals;
+    vector<UV> uvs;
+
+    builder.unpack(indices, vertices, normals, uvs);
+
+    // Sends the data into buffers on the GPU
+    object.sendPrimitives(vertices, indices);
+
+}
+
 // Builds one Cube
 void buildCube(Object &object, const GLfloat side, MeshBuilder & builder) {
     builder.addVertex(-side, -side, side); // 0 - front bottom left
@@ -70,8 +94,38 @@ void buildCube(Object &object, const GLfloat side, MeshBuilder & builder) {
     builder.addFace(0, 4, 2); builder.addFace(2, 4, 6); // left
     builder.addFace(1, 5, 3); builder.addFace(3, 5, 7); // right
     builder.addFace(2, 3, 6); builder.addFace(6, 3, 7); // top
-    builder.addFace(0, 1, 4); builder.addFace(4, 1, 5); // bottom
+    builder.addFace(0, 4, 1); builder.addFace(1, 4, 5); // bottom
+    builder.addFace(4, 6, 5); builder.addFace(5, 6, 7); // back
+    builder.addFace(0, 1, 2); builder.addFace(2, 1, 3); // front
+    
+    vector<unsigned int> indices;
+    vector<Vector3f> vertices;
+    vector<Vector3f> normals;
+    vector<UV> uvs;
 
+    builder.unpack(indices, vertices, normals, uvs);
+
+    // Sends the data into buffers on the GPU
+    object.sendPrimitives(vertices, indices);
+}
+
+void buildSkybox(Object &object, const GLfloat side, MeshBuilder & builder) {
+    builder.addVertex(-side, -side, side); // 0 - front bottom left
+    builder.addVertex(side, -side, side); // 1 - front bottom right
+    builder.addVertex(-side, side, side); // 2 - front top left
+    builder.addVertex(side, side, side); // 3 - front top right
+    builder.addVertex(-side, -side, -side); // 4 - back bottom left
+    builder.addVertex(side, -side, -side); // 5 - back bottom right
+    builder.addVertex(-side, side, -side); // 6 - back top left
+    builder.addVertex(side, side, -side); // 7 - back top right
+
+    builder.addFace(0, 2, 4); builder.addFace(4, 2, 6); // left
+    builder.addFace(1, 3, 5); builder.addFace(5, 3, 7); // right
+    builder.addFace(2, 6, 3); builder.addFace(3, 6, 7); // top
+    builder.addFace(0, 1, 4); builder.addFace(4, 1, 5); // bottom
+    builder.addFace(4, 5, 6); builder.addFace(6, 5, 7); // back
+    builder.addFace(0, 2, 1); builder.addFace(1, 2, 3); // front
+    
     vector<unsigned int> indices;
     vector<Vector3f> vertices;
     vector<Vector3f> normals;

@@ -234,11 +234,11 @@ GLuint loadProgram(const vector<string> &files) {
 }
 
 // Passing the matrices to the shader
-void setMatricesInShader(GLuint shaderID, const Matrix4f &model, const Matrix4f &view, const Vector3f &eye, const Matrix4f &projection) {
+void setMatricesInShader(GLuint shaderID, const Matrix4f &model, const Matrix4f &view, const Vector3f &cameraPosition, const Matrix4f &projection) {
     GLenum toTranspose = GL_FALSE;
     glUniformMatrix4fv(glGetUniformLocation(shaderID, "model"), 1, toTranspose, model);
     glUniformMatrix4fv(glGetUniformLocation(shaderID, "view"), 1, toTranspose, (const float*) view);
-    glUniform4fv(glGetUniformLocation(shaderID, "eye"), 1, (const float*) eye);
+    glUniform3fv(glGetUniformLocation(shaderID, "cameraPosition"), 1, (const float*) cameraPosition);
     glUniformMatrix4fv(glGetUniformLocation(shaderID, "projection"), 1, toTranspose, (const float*) projection);
 }
 

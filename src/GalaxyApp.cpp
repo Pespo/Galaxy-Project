@@ -5,7 +5,9 @@
 #include <stein/Object.hpp>
 #include <stein/Tools.hpp>
 #include <stein/Builders.hpp>
+#include <stein/GLHeaders.hpp>
 #include <stein/math/StreamUtils.h>
+#include <stein/math/Vector3f.hpp>
 
 #include <iostream>
 
@@ -14,24 +16,46 @@
 using namespace std;
 using namespace stein;
 
-GalaxyApp::GalaxyApp() : Application(800, 800) {
+GalaxyApp::GalaxyApp() : Application(WIDTH, HEIGHT) {
 
     const float size = .06;
 
-    exMouseXPos = 0;
-    exMouseYPos = 0;
+    exMouseXPos = WIDTH/2;
+    exMouseYPos = HEIGHT/2;
 
     _scene.pCamera = new MoveableCamera();
     _scene.pCamera->setPerspectiveProjection(-size, size, -size, size, .1, 100);
-    _scene.pCamera->setPosition(Vector3f(0, 0, 55));
+    _scene.pCamera->setPosition(Vector3f(0, 0, -5));
     _scene.setDefaultShaderID(loadProgram("shaders/1.glsl"));
 
-    Object &object = _scene.createObject(GL_TRIANGLES);
-	MeshBuilder meshBuilder = MeshBuilder();
-    buildSphere(object, 0.1, 5, 5, meshBuilder);
+ //   GLuint tex = loadTexture();
 
-    _scene.addObjectToDraw(object.id);
-    _scene.setDrawnObjectColor(object.id, Color(1., 1., 0.));
+    /*Object &object1 = _scene.createObject(GL_TRIANGLES);
+	MeshBuilder meshBuilder = MeshBuilder();
+    buildSphere(object1, 0.1, 5, 5, meshBuilder);
+
+    GLuint obj1 =  _scene.addObjectToDraw(object1.id);
+    _scene.setDrawnObjectColor(obj1, Color(1., 1., 0.));
+    _scene.setDrawnObjectModel(obj1, translation(Vector3f( 2.0, 0., 0.)));
+
+    GLuint obj2 =_scene.addObjectToDraw(object1.id);
+    _scene.setDrawnObjectColor(obj2, Color(1., 0., 0.));
+    _scene.setDrawnObjectModel(obj2, translation(Vector3f( 1.0 , 0., 0.)));
+   
+	Object &object2 = _scene.createObject(GL_TRIANGLES);
+	MeshBuilder meshBuilder2 = MeshBuilder();
+    buildRepere(object2, meshBuilder2);
+
+    GLuint obj3 =_scene.addObjectToDraw(object2.id);
+    _scene.setDrawnObjectColor(obj3, Color(1., 0., 0.));*/
+
+    Object &object3 = _scene.createObject(GL_TRIANGLES);
+    MeshBuilder meshBuilder3 = MeshBuilder();
+    buildSkybox(object3, 1.,meshBuilder3);
+
+    GLuint obj4 =_scene.addObjectToDraw(object3.id);
+    _scene.setDrawnObjectColor(obj4, Color(1., 1., 1.));
+   // _scene.setDrawnObjectModel(obj4, scale(Vector3f( 5. , 5., 5.)));
 }
 
 GalaxyApp::~GalaxyApp() {
@@ -52,6 +76,7 @@ void GalaxyApp::renderFrame() {
 void GalaxyApp::animate() {
     //_scene.setDrawnObjectModel(0,xRotation(frand()));
     ((MoveableCamera*)_scene.pCamera)->move();
+    //cout << " Camera : " << _scene.pCamera->getPosition() << endl;
 }
 
 void GalaxyApp::mouseEvent() {

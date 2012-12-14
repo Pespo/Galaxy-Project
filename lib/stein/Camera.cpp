@@ -43,12 +43,12 @@ void Camera::setOrthoProjection(float left, float right, float bottom, float top
 
 void Camera::setPosition(const Vector3f&p) {
     position = p;
-    //updateView();
+    updateView();
 }
 
 void Camera::setRotation(const Matrix4f&r) {
 	rotation = r;
-	//updateView();
+	updateView();
 }
 
 const Vector3f& Camera::getPosition() const {

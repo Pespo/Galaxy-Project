@@ -9,9 +9,9 @@ namespace stein {
 
 Application::Application(size_t width, size_t height) : _width(width), _height(height), _frameCount(0), _lastStartTime(0.), _lastSecondTime(0.) {
     // Mouse position, pressed position and scroll data initilaization
-    _bShowMouse = bool(true);
-    _mouseXPos = 0;
-    _mouseYPos = 0;
+    _bShowMouse = bool(false);
+    _mouseXPos = _width/2;
+    _mouseYPos = _height/2;
     _pressedMouseXPos = 0;
     _pressedMouseYPos = 0;
 
@@ -21,9 +21,10 @@ Application::Application(size_t width, size_t height) : _width(width), _height(h
 
     // Initialisation of GLFW and creation of OpenGL context
     initGlfw();
-    
     // Customize a few OpenGL and GLFW states (after context creation)
     //customizeStates();
+    glfwDisable(GLFW_MOUSE_CURSOR);
+    glfwSetMousePos( _width/2, _height/2 );
 }
 
 // Cleans before the application can be closed
@@ -111,12 +112,14 @@ void Application::setTitle(const char* title) {
 }
 
 void Application::hideCursor(char key) {
+    if(glfwGetKey(key) == GLFW_RELEASE)
+        _bShowMouse = !_bShowMouse;
+
     if(_bShowMouse != true )
 		glfwDisable(GLFW_MOUSE_CURSOR);
 	else
 		glfwEnable(GLFW_MOUSE_CURSOR);
-    if(glfwGetKey(key) == GLFW_RELEASE)
-        _bShowMouse = !_bShowMouse;
+    
 }
 
 void Application::renderFrame() {
@@ -145,9 +148,10 @@ void Application::animate() {
 void Application::loop() {
     do {
         //Update camera view
-	    //_scene.updateCamera(_mousex, _mousey, _zButton, _qButton, _sButton, _dButton);
+	    //_scene.pCamera->updateView();
         //initTimers();
         double t = glfwGetTime();
+
         if(t - _lastStartTime >= _frameDuration) {
             mouseEvent();
             keyEvent();

@@ -6,11 +6,9 @@
 using namespace stein;
 using namespace std;
 
-MoveableCamera::MoveableCamera(float height) :
-	Camera(), m_nextMove(), m_xMousePosition(), m_yMousePosition()
-{	
-	setPosition(Vector3f(0.,height,-1.));
-}
+MoveableCamera::MoveableCamera() :
+	Camera(), m_nextMove(), m_xMousePosition(), m_yMousePosition(), MOVE_STEP(0.1)
+{}
 
 MoveableCamera::~MoveableCamera()
 {}
@@ -19,11 +17,10 @@ void MoveableCamera::cancelMovement() {
 	m_nextMove = Vector3f(0., 0., 0.);
 }
 void MoveableCamera::setMouseMovement(int deltaX, int deltaY) {
-	m_xMousePosition += 2. * (deltaX / 800.) /*(GLfloat)GalaxyApp::WIDTH*/;
-	m_yMousePosition += -2. * (deltaY / 800.) /*(GLfloat)GalaxyApp::HEIGHT*/;
+	m_xMousePosition += 2. * (deltaX / (GLfloat)GalaxyApp::WIDTH);
+	m_yMousePosition += -2. * (deltaY / (GLfloat)GalaxyApp::HEIGHT);
 }
 
-// will be called when a key is pushed (add = true) and When the key is released (add = false)
 void MoveableCamera::setKeyMovement(Direction to) {
 	size_t axis;
 	if(to == FORWARD || to == BACKWARD)
@@ -32,16 +29,15 @@ void MoveableCamera::setKeyMovement(Direction to) {
 		axis = RIGHT;
 	else
 		axis = UP;
-	m_nextMove[axis] += (to == axis) ? 3. : -3.;
+	m_nextMove[axis] += (to == axis) ? 1. : -1.;
 }
 
 void MoveableCamera::move() {
-	float moveStep=0.1;
 	Vector3f cameraNewPos;
 
-	float moveOnX = -m_nextMove[0] * 0.1 /* MOVE_STEP*/;
-	float moveOnY = m_nextMove[1] * 0.1 /* MOVE_STEP*/;
-	float moveOnZ = m_nextMove[2] * 0.1 /* MOVE_STEP*/;
+	float moveOnX = -m_nextMove[0] * MOVE_STEP;
+	float moveOnY = m_nextMove[1] * MOVE_STEP;
+	float moveOnZ = m_nextMove[2] * MOVE_STEP;
 	for(size_t iCoord=0; iCoord<3; ++iCoord)
 	{
 		cameraNewPos[iCoord]=position[iCoord]

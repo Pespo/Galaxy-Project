@@ -21,9 +21,9 @@ protected :
 	float m_yMousePosition;
 	 
 public :
-	//const static float MOVE_STEP = 0.1;
+	const float MOVE_STEP;
 
-	MoveableCamera(float height = 0.8);
+	MoveableCamera();
 	virtual ~MoveableCamera();
 	void setMouseMovement(int deltaX, int deltaY);
 	void setKeyMovement(Direction to);
