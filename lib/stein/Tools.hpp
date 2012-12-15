@@ -20,6 +20,8 @@ Matrix4f yRotation(const float angle);
 Matrix4f zRotation(const float angle);
 Matrix4f rotation(const float angle, const Vector3f &axis);
 
+void ortho(float left, float right, float bottom, float top, float nearVal, float farVal, float * matA);
+
 void printGlErrors();
 
 GLuint loadTexture(const char* fileName);

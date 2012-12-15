@@ -135,17 +135,11 @@ void Application::renderFrame() {
     glfwSwapBuffers();
 }
 
-void Application::mouseEvent() {
+void Application::mouseMotionEvent() {}
+void Application::mouseButtonEvent() {}
+void Application::keyEvent() {}
 
-}
-
-void Application::keyEvent() {
-
-}
-
-void Application::animate() {
-
-}
+void Application::animate() {}
 
 void Application::loop() {
     do {
@@ -155,7 +149,8 @@ void Application::loop() {
         double t = glfwGetTime();
 
         if(t - _lastStartTime >= _frameDuration) {
-            mouseEvent();
+            mouseMotionEvent();
+            mouseButtonEvent();
             keyEvent();
             animate();
             renderFrame();
@@ -176,6 +171,14 @@ void Application::loop() {
 
 size_t Application::frameCount() const {
     return _frameCount;
+}
+
+size_t Application::getWindowWidth() const {
+    return _width;
+}
+
+size_t Application::getWindowHeight() const {
+    return _height;
 }
 
 } // namespace stein

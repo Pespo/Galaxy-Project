@@ -12,11 +12,16 @@ public:
 
 	int _exMouseXPos; // Keeps the X mouse position of the previous image
 	int _exMouseYPos; // Keeps the Y mouse position of the previous image
+	bool _leftButtonPressed; // Keeps the left button of the mouse value (PRESS or RELEASE)
+	float _bias;
 	
     GalaxyApp();
     ~GalaxyApp();
+    void initGUI();
+    void drawGUI();
     void renderFrame();
     void animate();
-	void mouseEvent();
+	void mouseMotionEvent();
+	void mouseButtonEvent();
     void keyEvent();
 };

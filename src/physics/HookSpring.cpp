@@ -5,7 +5,11 @@
 using namespace std;
 using namespace stein;
 
+HookSpring::HookSpring() : m_k(1), m_freeLength(0.4), m_epsilon(0.000001), m_inversion(false) {}
+
 HookSpring::HookSpring(float k = 1, float freeLength = 0.4, float epsilon = 0.000001, bool inversion = false) : m_k(k), m_freeLength(freeLength), m_epsilon(epsilon), m_inversion(inversion) {}
+
+HookSpring::~HookSpring(){}
 
 void HookSpring::generateForces(Particle *p1, Particle *p2) {
      Vector3f vector = (p2->m_position - p1->m_position);
