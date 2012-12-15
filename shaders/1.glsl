@@ -7,6 +7,8 @@ uniform vec3 cameraPosition;
 uniform mat4 projection;
 uniform vec4 color;
 
+uniform sampler2D textureUnitDiffuse;
+
 uniform vec3  LightPosition;
 //uniform vec3  LightColor;
 uniform float LightIntensity;
@@ -18,14 +20,17 @@ uniform mat4 InverseViewProjection;
 in vec4 vertexPosition;
 in vec3 vertexNormal;
 in vec4 vertexColor;
+in vec2 vertexUv;
 
 // Varyings : data to transmit to fragments
+out vec2 uv;
 out vec3 normal;
 out vec3 position;
 
 void main(void)
 {	
-	normal = vec3(model * vec4(vertexNormal, 1.0));; 
+	uv = vertexUv;
+	normal = vec3(model * vec4(vertexNormal, 1.0));
 	position = vec3(model * vertexPosition);
 	gl_Position = projection * view * model * vertexPosition;
 }
@@ -35,6 +40,7 @@ void main(void)
 #ifdef _FRAGMENT_
 
 // Varyings : data receved and interpolated from the vertex shaders
+in vec2 uv;
 in vec3 position;
 in vec3 normal;
 
@@ -49,8 +55,8 @@ vec3 pointLight(in vec3 lcolor, in float intensity, in vec3 lpos, in vec3 n, in 
 	float n_dot_l = clamp(dot(n, l), 0, 1.0);
 	float n_dot_h = clamp(dot(n, h), 0, 1.0);
 	float d = distance(l, position);
-	float att = clamp(  1.0 /  ( 1 + 0.1 * (d*d)), 0.0, 1.0);
-	vec3 color1 = lcolor * intensity * att * (diffuse * n_dot_l + spec * vec3(1.0, 1.0, 1.0) *  pow(n_dot_h, spec * 100.0));
+	float att = clamp( 1.0 / ( 1 + 0.1 * (d*d)), 0.0, 1.0);
+	vec3 color1 = lcolor * intensity * att * (diffuse * n_dot_l  + spec * vec3(1.0, 1.0, 1.0) *  pow(n_dot_h, spec * 100.0));
 	return color1;
 }
 
@@ -85,13 +91,13 @@ vec3 spotLight(in vec3 lcolor, in float intensity, in vec3 ldir, in vec3 lpos, i
 
 void main(void)
 {
-	vec3 diffuse = color.rgb;
+	vec3 diffuse = texture(textureUnitDiffuse, uv).rgb;
 	float spec = 0.;
 	vec3 n = normalize(normal);
 
-	vec3 cpointlight1 = pointLight(vec3(1.0, 1.0, 0.0), 10.0, vec3(0.0, 0.0, 0.0), n, position, diffuse, spec, cameraPosition);
+	vec3 cpointlight1 = pointLight(vec3(1.0, 1.0, 0.0), 50.0, vec3(0.0, 0.0, 0.0), n, position, diffuse, spec, cameraPosition);
 	//vec3 cpointlight2 = pointLight(vec3(1.0, 0.0, 0.0), 1.0, vec3(10.0, 1.0, 10.0), n, position, diffuse, spec, cameraPosition);
-	//vec3 cdirlight1 = directionalLight(vec3(1.0, 0.0, 0.0), 5.0, vec3(0.0, -1.0, 0.0), n, position, diffuse, spec, cameraPosition);
+	//vec3 cdirlight1 = directionalLight(vec3(1.0, 0.0, 0.0), 10.0, vec3(0.0, -1.0, 0.0), n, position, diffuse, spec, cameraPosition);
 	//vec3 cspotlight1 = spotLight(vec3(1.0, 1.0, 0.0), 1., vec3(0., -1., 0.), vec3( 0., 5.5, 0.), n, position, diffuse, spec, cameraPosition );
 
 	//fragColor = vec4(cpointlight1 + cpointlight2 + cdirlight1 + cspotlight1, 1.0);

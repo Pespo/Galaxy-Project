@@ -2,6 +2,7 @@
 #include <stdexcept>
 #include <cfloat>
 #include <algorithm>
+#include <iostream>
 
 using namespace std;
 
@@ -69,7 +70,7 @@ void MeshBuilder::addNormal(float x, float y, float z) {
     addNormal(Vector3f(x, y, z));
 }
 
-void MeshBuilder::addNormal(const Vector3f&n) {
+void MeshBuilder::addNormal(const Vector3f &n) {
     m_Normals.push_back(n);
 }
 
@@ -130,9 +131,9 @@ void MeshBuilder::unpack( //
         vertices.push_back(m_Vertices[itr->v2]);
         vertices.push_back(m_Vertices[itr->v3]);
         if (itr->n1 != Face::NA) {
-            normals.push_back(m_Normals[itr->n1]);
-            normals.push_back(m_Normals[itr->n2]);
-            normals.push_back(m_Normals[itr->n3]);
+            normals.push_back(m_Normals[itr->n1]); 
+            normals.push_back(m_Normals[itr->n2]); 
+            normals.push_back(m_Normals[itr->n3]); 
         }
         if (itr->t1 != Face::NA) {
             uvs.push_back(m_Uvs[itr->t1]);

@@ -9,6 +9,9 @@ namespace stein {
 typedef std::pair<float, float> UV;
 
 class MeshBuilder {
+
+public:
+
     struct Face {
         Face& setUvIndices(unsigned int a, unsigned int b, unsigned int c);
         Face& setNormalIndices(unsigned int a, unsigned int b, unsigned int c);
@@ -22,7 +25,7 @@ class MeshBuilder {
         unsigned int n1, n2, n3;
         unsigned int t1, t2, t3;
     };
-public:
+
     // builder functions
     void addVertex(float x, float y, float z);
     void addVertex(const Vector3f&p);
