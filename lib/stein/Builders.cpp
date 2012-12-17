@@ -38,16 +38,24 @@ void buildTriangle(Object &object, MeshBuilder & builder) {
 
 // Builds one square
 void buildSquare(Object &object, const GLfloat side, MeshBuilder & builder) {
-    builder.addVertex(-side, -side, 0); // bottom left
-    builder.addVertex(side, -side, 0); // bottom right
-    builder.addVertex(-side, side, 0); // top left
-    builder.addVertex(side, side, 0); // top right
+    builder.addVertex(-side/2, -side/2, 0); // bottom left
+    builder.addVertex(side/2, -side/2, 0); // bottom right
+    builder.addVertex(-side/2, side/2, 0); // top left
+    builder.addVertex(side/2, side/2, 0); // top right
 
     builder.addNormal(0, 0, 1);
-    builder.addFace(0, 2, 3).setNormalIndices(0, 0, 0);
+    
+    builder.addUV(0., 0.);
+    builder.addUV(1., 0.);
+    builder.addUV(0., 1.);
+    builder.addUV(1., 1.);
 
-    builder.addNormal(0, 0, 1);
-    builder.addFace(0, 1, 3).setNormalIndices(1, 1, 1);
+    MeshBuilder::Face &triangle1 = builder.addFace(0, 1, 2);
+        triangle1.setNormalIndices(0, 0, 0);
+        triangle1.setUvIndices(0, 1, 2);
+    MeshBuilder::Face &triangle2 = builder.addFace(2, 1, 3);
+        triangle2.setNormalIndices(0, 0, 0);
+        triangle2.setUvIndices(2, 1, 3);
 
     vector<unsigned int> indices;
     vector<Vector3f> vertices;
@@ -57,9 +65,9 @@ void buildSquare(Object &object, const GLfloat side, MeshBuilder & builder) {
     builder.unpack(indices, vertices, normals, uvs);
 
     // Sends the data into buffers on the GPU
+    object.sendUvs(uvs);
     object.sendNormals(normals);
     object.sendPrimitives(vertices, indices);
-    
 }
 
 void buildRepere(Object &object, MeshBuilder & builder)

@@ -14,11 +14,22 @@ namespace stein {
 
 // Default constructor
 Scene::Scene() :
-    defaultColor(Color::WHITE), defaultTransformation(Matrix4f::identity()), defaultShaderID(1) {
+    defaultColor(Color::WHITE), defaultTransformation(Matrix4f::identity()), defaultShaderID(1), defaultTextureID0(NA), defaultTextureID1(NA) {
+
     // Light creation
     GLfloat lightPosition[] = { 0.0, 0.0, 1.0, 1.0 };
     GLfloat lightPower = 1.0;
     setLight(lightPosition, lightPower);
+
+    /*glEnable(GL_CULL_FACE);
+
+    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glEnable(GL_ALPHA_TEST);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_POLYGON_SMOOTH);
+    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+    glShadeModel(GL_SMOOTH);*/
 }
 
 Scene::~Scene() {
@@ -42,7 +53,7 @@ GLuint Scene::addObjectToDraw(GLuint indexStoredObject) {
     const size_t size = drawnObjects.size();
     if (size >= maxDrawnObjects)
         throw std::runtime_error("maximum number of drawn objects reached");
-    drawnObjects.push_back(ObjectInstance(indexStoredObject, defaultShaderID, defaultTransformation, defaultColor));
+    drawnObjects.push_back(ObjectInstance(size, indexStoredObject, defaultShaderID, defaultTextureID0, defaultTextureID1, defaultTransformation, defaultColor));
     return size;
 }
 
@@ -64,6 +75,12 @@ void Scene::setDrawnObjectShaderID(GLuint indexDrawnObject, GLuint shaderID) {
     drawnObjects[indexDrawnObject].shaderId = shaderID;
 }
 
+//Sets the ID of the texture to use on the drawn object of index indexDrawnObject
+void Scene::setDrawnObjectTextureID(GLuint indexDrawnObject, GLuint textureUnit, GLuint textureID) {
+    if (textureUnit == 0) drawnObjects[indexDrawnObject].textureId0 = textureID;
+    if (textureUnit == 1) drawnObjects[indexDrawnObject].textureId0 = textureID;
+}
+
 // Sets the light
 void Scene::setDefaultColor(const Color &color) {
     defaultColor = color;
@@ -81,6 +98,12 @@ void Scene::setDefaultModel(const Matrix4f &_defaultModel) {
 // Sets default shader ID
 void Scene::setDefaultShaderID(GLuint id) {
     defaultShaderID = id;
+}
+
+//Sets the ID of the texture to use on the drawn object of index indexDrawnObject
+void Scene::setDefaultTextureID(GLuint textureUnit, GLuint textureID) {
+    if (textureUnit == 0) defaultTextureID0 = textureID;
+    if (textureUnit == 1) defaultTextureID1 = textureID;
 }
 
 // Sets light data to use in shader
@@ -107,6 +130,20 @@ void Scene::setAppearance(const ObjectInstance &instance) {
     
     // Sets the light in the current shader
     setLightInShader(shaderId, lightPosition, lightPower);
+
+    if(instance.textureId0 != NA){
+        //Selects our current texture for unit 0
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, instance.textureId0);
+    }
+
+    if(instance.textureId0 != NA){
+        //Selects our current texture for unit 1
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, instance.textureId1);
+    }
+    
+    setTextureUnitsInShader(shaderId);
 }
 
 // Draw all Objects

@@ -20,55 +20,28 @@ using namespace stein;
 
 GalaxyApp::GalaxyApp() : Application(WIDTH, HEIGHT) {
 
-    const float size = .06;
-
     _exMouseXPos = WIDTH/2;
     _exMouseYPos = HEIGHT/2;
 
-    _scene.pCamera = new MoveableCamera();
-    _scene.pCamera->setPerspectiveProjection(-size, size, -size, size, .1, 100);
-    _scene.pCamera->setPosition(Vector3f(0, 0, -5));
+    MoveableCamera * camera = initCamera(.06, Vector3f(0, 0, -5));
+
     GLuint shaderID = loadProgram("shaders/1.glsl");
     _scene.setDefaultShaderID(shaderID);
-    setTextureUnitsInShader(shaderID);
-   /* Object &face = _scene.createObject(GL_TRIANGLES);
-    MeshBuilder faceBuilder = MeshBuilder();
-    buildSquare(face, 1., faceBuilder);
 
-    GLuint left =_scene.addObjectToDraw(face.id);
-    _scene.setDrawnObjectColor(left, Color(0., 0., 1.));
-	//_scene.setDrawnObjectModel(left, translation(Vector3f(1., 0., 0.)) * yRotation(3.14/2.));
-
-    GLuint right =_scene.addObjectToDraw(face.id);
-    _scene.setDrawnObjectColor(right, Color(0., 1., 0.));
-	_scene.setDrawnObjectModel(right,  translation(Vector3f(3., 0., 0.)) * yRotation(3.14/2.));*/
-   
-
-	Object &cubeObject = _scene.createObject(GL_TRIANGLES);
-    MeshBuilder cubeBuilder = MeshBuilder();
-    buildCube(cubeObject, 1., cubeBuilder);
-
-    GLuint cube =_scene.addObjectToDraw(cubeObject.id);
-    _scene.setDrawnObjectColor(cube, Color(1., 1., 1.));
-	//_scene.setDrawnObjectModel(sky, scale(Vector3f( 5. , 5., 5.)));
-
-    //SKYBOX
-    GLuint texID = loadTexture("textures/sand.ppm");
-
-    Object &skyObject = _scene.createObject(GL_TRIANGLES);
-    skyObject.setTextureId(texID);
-
-    MeshBuilder skyBuilder = MeshBuilder();
-    buildSkybox(skyObject, 1., skyBuilder);
-
-    GLuint sky =_scene.addObjectToDraw(skyObject.id);
-    _scene.setDrawnObjectColor(sky, Color(1., 1., 1.));
-	_scene.setDrawnObjectModel(sky, scale(Vector3f( 20. , 20., 20.)));
+    setSkybox(100);
     
+
 }
 
 GalaxyApp::~GalaxyApp() {
     glfwTerminate();
+}
+
+MoveableCamera* GalaxyApp::initCamera(const float size, Vector3f position){
+    _scene.pCamera = new MoveableCamera();
+    _scene.pCamera->setPerspectiveProjection(-size, size, -size, size, .1, 100);
+    _scene.pCamera->setPosition(position);
+    return (MoveableCamera*)_scene.pCamera;
 }
 
 void GalaxyApp::animate() {
@@ -95,4 +68,34 @@ void GalaxyApp::keyEvent() {
     if(glfwGetKey('S') == GLFW_PRESS) ((MoveableCamera*)_scene.pCamera)->setKeyMovement(BACKWARD);
     if(glfwGetKey('D') == GLFW_PRESS) ((MoveableCamera*)_scene.pCamera)->setKeyMovement(RIGHT);
     if(glfwGetKey('H') == GLFW_PRESS) hideCursor('H');
+}
+
+void GalaxyApp::setSkybox(size_t size) {
+    Object &skyObject = _scene.createObject(GL_TRIANGLES);
+    MeshBuilder skyBuilder = MeshBuilder();
+    buildSquare(skyObject, size, skyBuilder);
+
+    GLuint right =_scene.addObjectToDraw(skyObject.id);
+    _scene.setDrawnObjectModel(right, translation(Vector3f(size/2, 0., 0.)) * yRotation(-3.14/2) * zRotation(3.14));
+    _scene.setDrawnObjectTextureID(right, 0, loadTexture( "textures/skybox/right.tga", 3));
+     
+    GLuint left =_scene.addObjectToDraw(skyObject.id);
+    _scene.setDrawnObjectModel(left, translation(Vector3f(-1. * size/2, 0., 0.)) * yRotation(3.14/2) * zRotation(3.14));
+    _scene.setDrawnObjectTextureID(left, 0,loadTexture( "textures/skybox/left.tga", 3));
+
+    GLuint front =_scene.addObjectToDraw(skyObject.id);
+    _scene.setDrawnObjectModel(front,translation(Vector3f(0., 0., size/2)) * yRotation(3.14) * zRotation(3.14));
+    _scene.setDrawnObjectTextureID(front, 0, loadTexture( "textures/skybox/front.tga", 3));
+
+    GLuint back =_scene.addObjectToDraw(skyObject.id);
+    _scene.setDrawnObjectModel(back, translation(Vector3f(0., 0., -1. * size/2)) * zRotation(3.14));
+    _scene.setDrawnObjectTextureID(back, 0, loadTexture( "textures/skybox/back.tga", 3));
+
+    GLuint top =_scene.addObjectToDraw(skyObject.id);
+    _scene.setDrawnObjectModel(top,translation(Vector3f(0., size/2, 0.)) * xRotation(-3.14/2) * zRotation(-3.14/2));
+    _scene.setDrawnObjectTextureID(top, 0, loadTexture( "textures/skybox/top.tga", 3));
+
+    GLuint bot =_scene.addObjectToDraw(skyObject.id);
+    _scene.setDrawnObjectModel(bot,translation(Vector3f(0., -1. * size/2, 0.)) * xRotation(3.14/2) * zRotation(3.14/2));
+    _scene.setDrawnObjectTextureID(bot, 0, loadTexture( "textures/skybox/bot.tga", 3));
 }

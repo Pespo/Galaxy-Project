@@ -1,5 +1,6 @@
 bin/*
 obj/*
+texturesTest/*
 
 #MVS2010
 *.sln

@@ -22,7 +22,7 @@ Matrix4f rotation(const float angle, const Vector3f &axis);
 
 void printGlErrors();
 
-GLuint loadTexture(const char* fileName);
+GLuint loadTexture(const char* fileName, const int &comp);
 GLuint loadProgram(const std::vector<std::string> & files);
 GLuint loadProgram(const std::string& file);
 void printShaderLog(GLuint shaderId);

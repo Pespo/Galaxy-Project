@@ -95,7 +95,7 @@ void main(void)
 	float spec = 0.;
 	vec3 n = normalize(normal);
 
-	vec3 cpointlight1 = pointLight(vec3(1.0, 1.0, 0.0), 50.0, vec3(0.0, 0.0, 0.0), n, position, diffuse, spec, cameraPosition);
+	vec3 cpointlight1 = pointLight(vec3(1.0, 1.0, 0.0), 20.0, vec3(0.0, 0.0, 0.0), n, position, diffuse, spec, cameraPosition);
 	//vec3 cpointlight2 = pointLight(vec3(1.0, 0.0, 0.0), 1.0, vec3(10.0, 1.0, 10.0), n, position, diffuse, spec, cameraPosition);
 	//vec3 cdirlight1 = directionalLight(vec3(1.0, 0.0, 0.0), 10.0, vec3(0.0, -1.0, 0.0), n, position, diffuse, spec, cameraPosition);
 	//vec3 cspotlight1 = spotLight(vec3(1.0, 1.0, 0.0), 1., vec3(0., -1., 0.), vec3( 0., 5.5, 0.), n, position, diffuse, spec, cameraPosition );
@@ -104,7 +104,7 @@ void main(void)
 	//fragColor = vec4(cpointlight1, 1.0);
 	//fragColor = vec4(cpointlight1 + cpointlight2, 1.0);
 
-	fragColor = vec4(cpointlight1, 1.0);
+	fragColor = vec4(diffuse, 1.0);
 	//fragColor = vec4(cdirlight1, 1.0);
 }
 

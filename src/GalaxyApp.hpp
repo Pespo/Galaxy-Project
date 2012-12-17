@@ -1,7 +1,9 @@
 #pragma once
 
+#include "MoveableCamera.hpp"
 #include "Physics/PhysicManager.hpp"
 #include <stein/Application.hpp>
+#include <stein/math/Vector3f.hpp>
 
 class GalaxyApp : public stein::Application {
 public:
@@ -15,8 +17,10 @@ public:
 	
     GalaxyApp();
     ~GalaxyApp();
+    MoveableCamera* initCamera(const float size, Vector3f position);
     void renderFrame();
     void animate();
 	void mouseEvent();
     void keyEvent();
+    void setSkybox(size_t size);
 };
