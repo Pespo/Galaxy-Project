@@ -70,6 +70,17 @@ Matrix4f rotation(const float angle, const Vector3f &axis) {
         0, 0, 0, 1);
 }
 
+// Setup an orthographic projection in matA
+void ortho(float left, float right, float bottom, float top, float nearVal, float farVal, float * matA) {
+    float tx = -(right + left) / ( right - left);
+    float ty = -(top + bottom) / ( top - bottom);
+    float tz = -(farVal + nearVal) / ( farVal - nearVal);
+    matA[0] = 2.0f/(right-left); matA[1] = 0.0f; matA[2] = 0.0f; matA[3] = 0.0f;
+    matA[4] = 0.0f; matA[5] = 2.0f/(top-bottom); matA[6] = 0.0f; matA[7] = 0.0f;
+    matA[8] = 0.0f; matA[9] = 0.0f; matA[10] = -2.0f/(farVal-nearVal); matA[11] = 0.0f;
+    matA[12] = tx; matA[13] = ty; matA[14] = tz; matA[15] = 1.0f;
+}
+
 // Builds a perspective projection matrix and stores it in mat
 // l=left, r=right, b=bottom, t=top, n=near, f=far in the frustum
 void setPerspective(GLfloat * mat, GLfloat l, GLfloat r, GLfloat b, GLfloat t, GLfloat n, GLfloat f) {

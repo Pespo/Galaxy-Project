@@ -14,6 +14,9 @@ public :
 
 	void loop();
 
+	size_t getWindowWidth() const;
+    size_t getWindowHeight() const;
+
 protected:
 	Scene _scene;
 
@@ -31,10 +34,11 @@ protected:
     void hideCursor(char key);
     void printFPS();
 
-    virtual void mouseEvent();
+    virtual void mouseMotionEvent();
+    virtual void mouseButtonEvent();
     virtual void keyEvent();
     virtual void animate();
-    void renderFrame();
+    virtual void renderFrame();
 
     size_t frameCount() const;
 

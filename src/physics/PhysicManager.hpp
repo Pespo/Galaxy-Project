@@ -24,17 +24,17 @@ public:
     void setDefaultMass(const float mass);
     void setFefaultVelocity(const Vector3f velocity);
     void setDefaultForce(const Vector3f force);
-
+    
     void solve();
-    void applySpring();
+    void applySprings();
 
     const static size_t maxPhysicalObjects = 200; // An initial limit of drawable objects
     std::vector<Particle*> physicalObjects;
 
-    GravitySpring gSpring;
+    HookSpring hookSpring;
     LeapfrogSolver solver; // Calculates objects movements
+
 private:
-    
     float defaultMass;
     Vector3f defaultPosition;
     Vector3f defaultVelocity;

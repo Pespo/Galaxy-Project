@@ -3,7 +3,7 @@
 #include "Physics/LeapfrogSolver.hpp"
 #include <stein/Scene.hpp>
 
-PhysicManager::PhysicManager() : defaultPosition(0.0, 0.0, 0.0), defaultMass(1.0), defaultVelocity(0.0, 0.0, 0.0), defaultForce(0.0, 0.0, 0.0), gSpring(Vector3f(0., 1., 0.)), solver(0.002) {};
+PhysicManager::PhysicManager() : defaultPosition(0.0, 0.0, 0.0), defaultMass(1.0), defaultVelocity(0.0, 0.0, 0.0), defaultForce(0.0, 0.0, 0.0), solver(0.002) {};
 
 PhysicManager::~PhysicManager() {}
 
@@ -64,7 +64,7 @@ void PhysicManager::solve(){
 	        solver.solve(physicalObjects[i]);
 }
 
-void PhysicManager::applySpring(){
-	for(int i =0; i < physicalObjects.size(); i++)
-		gSpring.generateForces(physicalObjects[i], NULL);
+void PhysicManager::applySprings(){
+	for(int i=0; i < physicalObjects.size(); ++i)
+		  hookSpring.generateForces(physicalObjects[i], NULL);
 }
