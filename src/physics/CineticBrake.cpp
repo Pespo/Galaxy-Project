@@ -3,6 +3,8 @@
 
 using namespace stein;
 
+CineticBrake::CineticBrake() : m_dt(0.02),  m_z(0.0001) {}
+
 CineticBrake::CineticBrake(float dt, float z = 0.05) : m_dt(dt),  m_z(z) {}
 
 void CineticBrake::generateForces(Particle *p1, Particle *p2) {

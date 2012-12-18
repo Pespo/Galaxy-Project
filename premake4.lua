@@ -6,9 +6,9 @@ solution "Galaxy project"
    project "galaxy_project"
       kind "ConsoleApp"
       language "C++"
-      files { "src/*.hpp", "src/*.cpp", "src/*.h", "src/physics/*.hpp", "src/physics/*.cpp" }
+      files { "src/*.hpp", "src/*.cpp", "src/*.h", "src/physics/*.hpp", "src/physics/*.cpp", "src/gui/*.hpp", "src/gui/*.h", "src/gui/*.cpp" }
       includedirs { "lib/glfw/include", "src", "lib/" }
-      links { "glew", "glfw", "stb_image", "stein"}
+      links { "glew", "glfw", "stein"}
       defines { "GLEW_STATIC" }
      
       configuration { "linux" }
@@ -71,22 +71,6 @@ solution "Galaxy project"
       language "C"
       files {"lib/glew/*.c", "lib/glew/*.h"}
       defines { "GLEW_STATIC" }
-
-      configuration "Debug"
-         defines { "DEBUG" }
-         flags { "Symbols" }
-         targetdir "bin/debug"
-
-      configuration "Release"
-         defines { "NDEBUG" }
-         flags { "Optimize" }    
-         targetdir "bin/release"
-
-   -- stb_image Library         
-   project "stb_image"
-      kind "StaticLib"
-      language "C"
-      files {"lib/stb_image/*.c", "lib/stb_image/*.h"}
 
       configuration "Debug"
          defines { "DEBUG" }

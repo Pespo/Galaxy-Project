@@ -7,7 +7,8 @@ using namespace stein;
 
 class CineticBrake: public Spring {
 public:
-   CineticBrake(float dt, float z);
+	CineticBrake();
+   	CineticBrake(float dt, float z);
    virtual void generateForces(Particle *p1, Particle *p2);
 
 private:

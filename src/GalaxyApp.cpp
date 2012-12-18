@@ -2,6 +2,7 @@
 #include "physics/PhysicManager.hpp"
 #include "MoveableCamera.hpp"
 
+#include "gui/GLcommon.hpp"
 #include "gui/imgui.h"
 #include "gui/imguiRenderGL.h"
 
@@ -25,6 +26,8 @@ using namespace stein;
 
 GalaxyApp::GalaxyApp() : Application(WIDTH, HEIGHT) {
 
+    initGUI();
+
     _exMouseXPos = WIDTH/2;
     _exMouseYPos = HEIGHT/2;
 
@@ -33,7 +36,7 @@ GalaxyApp::GalaxyApp() : Application(WIDTH, HEIGHT) {
     GLuint shaderID = loadProgram("shaders/1.glsl");
     _scene.setDefaultShaderID(shaderID);
 
-    setSkybox(100);
+    setSkybox(100); 
 
     setSystem();
    
@@ -51,7 +54,7 @@ MoveableCamera* GalaxyApp::initCamera(const float size, Vector3f position) {
     return (MoveableCamera*)_scene.pCamera;
 }
 
-/*void GalaxyApp::initGUI() {
+void GalaxyApp::initGUI() {
     // Init UI
     if (!imguiRenderGLInit("DroidSans.ttf"))
     {
@@ -68,7 +71,7 @@ void GalaxyApp::drawGUI() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	size_t width = getWindowWidth();
 	size_t height = getWindowHeight();
-    glViewport(0, 0, width, height);
+    //glViewport(0, 0, width, height);
     glDisable(GL_DEPTH_TEST);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -93,12 +96,14 @@ void GalaxyApp::drawGUI() {
     int logScroll = 0;
     imguiBeginScrollArea("Settings", width - 210, height - 310, 200, 300, &logScroll);
     imguiSlider("bias", &_bias, 0.0000, 0.1, 0.0005);
+    imguiSlider("bias", &physicManager.hookSpring.m_freeLength, 0.5, 10, 0.5);
     imguiEndScrollArea();
     imguiEndFrame();
 
     imguiRenderGLDraw();
+    glEnable(GL_DEPTH_TEST);
     glDisable(GL_BLEND);
-}*/
+}
 
 void GalaxyApp::animate() {
     //_scene.setDrawnObjectModel(0,xRotation(frand()));
@@ -120,7 +125,7 @@ void GalaxyApp::renderFrame() {
     _scene.drawObjectsOfScene();
 
     // Draws GUI
-    //drawGUI();
+    drawGUI();
 
     // Performs the buffer swap between the current shown buffer, and the one we just worked on
     glfwSwapBuffers();
@@ -157,27 +162,27 @@ void GalaxyApp::setSkybox(size_t size) {
 
     GLuint right =_scene.addObjectToDraw(skyObject.id);
     _scene.setDrawnObjectModel(right, translation(Vector3f(size/2, 0., 0.)) * yRotation(-M_PI/2) );
-    _scene.setDrawnObjectTextureID(right, 0, loadTexture( "texturesTest/skytest/right.tga", 3));
+    _scene.setDrawnObjectTextureID(right, 0, loadTexture( "textures/skybox/right.tga"));
      
     GLuint left =_scene.addObjectToDraw(skyObject.id);
     _scene.setDrawnObjectModel(left, translation(Vector3f(-1. * size/2, 0., 0.)) * yRotation(M_PI/2) );
-    _scene.setDrawnObjectTextureID(left, 0,loadTexture( "texturesTest/skytest/left.tga", 3));
+    _scene.setDrawnObjectTextureID(left, 0,loadTexture( "textures/skybox/left.tga"));
 
     GLuint front =_scene.addObjectToDraw(skyObject.id);
     _scene.setDrawnObjectModel(front,translation(Vector3f(0., 0., size/2)) * yRotation(M_PI) );
-    _scene.setDrawnObjectTextureID(front, 0, loadTexture( "texturesTest/skytest/front.tga", 3));
+    _scene.setDrawnObjectTextureID(front, 0, loadTexture( "textures/skybox/front.tga"));
 
     GLuint back =_scene.addObjectToDraw(skyObject.id);
     _scene.setDrawnObjectModel(back, translation(Vector3f(0., 0., -1. * size/2)) );
-    _scene.setDrawnObjectTextureID(back, 0, loadTexture( "texturesTest/skytest/back.tga", 3));
+    _scene.setDrawnObjectTextureID(back, 0, loadTexture( "textures/skybox/back.tga"));
 
     GLuint top =_scene.addObjectToDraw(skyObject.id);
     _scene.setDrawnObjectModel(top,translation(Vector3f(0., size/2, 0.)) * xRotation(-M_PI/2) );
-    _scene.setDrawnObjectTextureID(top, 0, loadTexture( "texturesTest/skytest/top.tga", 3));
+    _scene.setDrawnObjectTextureID(top, 0, loadTexture( "textures/skybox/top.tga"));
 
     GLuint bot =_scene.addObjectToDraw(skyObject.id);
     _scene.setDrawnObjectModel(bot,translation(Vector3f(0., -1. * size/2, 0.)) * xRotation(M_PI/2));
-    _scene.setDrawnObjectTextureID(bot, 0, loadTexture( "texturesTest/skytest/bot.tga", 3));
+    _scene.setDrawnObjectTextureID(bot, 0, loadTexture( "textures/skybox/bot.tga"));
 }
 
 void GalaxyApp::setSystem(){
@@ -186,9 +191,9 @@ void GalaxyApp::setSystem(){
 
     Object &sphereObject = _scene.createObject(GL_TRIANGLES);
     MeshBuilder sphereBuilder = MeshBuilder();
-    buildCube(sphereObject, 0.05, sphereBuilder);
+    buildCube(sphereObject, 0.2, sphereBuilder);
 
-    for(int i=0 ; i<50; ++i) {
+    for(int i=0 ; i<100; ++i) {
         GLuint sphere1 =_scene.addObjectToDraw(sphereObject.id);
         _scene.setDrawnObjectColor(sphere1, Color(frand(), frand(), frand()));
         _scene.setDrawnObjectShaderID(sphere1, colorShader);
@@ -196,8 +201,7 @@ void GalaxyApp::setSystem(){
         //physicManager.setPhysicObjectMass(spherePhy1, 1.);
         physicManager.setPhysicObjectPosition(spherePhy1, Vector3f(frand()*2, frand()*2, frand()*2));
 	}
-   
-
+    
     //_scene.setDrawnObjectModel(sphere, translation(Vector3f(size/2, 0., 0.)) * yRotation(-3.14/2) * zRotation(3.14));
     // Ground_Dirt_02_COLOR
 }
