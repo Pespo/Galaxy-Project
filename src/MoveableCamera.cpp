@@ -1,7 +1,7 @@
 #include "MoveableCamera.hpp"
 #include "GalaxyApp.hpp"
 #include "GL/glfw.h"
-
+#define M_PI  3.14159265f
 
 using namespace stein;
 using namespace std;
@@ -46,8 +46,8 @@ void MoveableCamera::move() {
 			+zAxis[iCoord]*moveOnZ;
 	}
 	
-	Matrix4f rotateAroundX = xRotation(-float(m_yMousePosition * 3.14/2.));
-	Matrix4f rotateAroundY = yRotation(float(m_xMousePosition * 3.14));
+	Matrix4f rotateAroundX = xRotation(-float(m_yMousePosition * M_PI/2.));
+	Matrix4f rotateAroundY = yRotation(float(m_xMousePosition * M_PI));
 	Matrix4f translate = translation(cameraNewPos);
 
 	view.setIdentity();

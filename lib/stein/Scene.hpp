@@ -53,7 +53,7 @@ private:
 
 public:
     const static size_t maxStoredObjects = 50; // An initial limit of storable objects
-    const static size_t maxDrawnObjects = 200; // An initial limit of drawable objects
+    const static size_t maxDrawnObjects = 500; // An initial limit of drawable objects
 
     Scene();
     ~Scene();

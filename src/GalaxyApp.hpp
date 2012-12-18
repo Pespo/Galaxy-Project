@@ -25,7 +25,7 @@ public:
     void loadShaders();
     void initGUI();
     void drawGUI();
-    
+
     void renderFrame();
     void animate();
 	void mouseMotionEvent();
@@ -33,4 +33,5 @@ public:
     void keyEvent();
     void buildSkybox(size_t size);
     void buildWoman(size_t size);
+    void setSystem();
 };

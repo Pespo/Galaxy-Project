@@ -11,7 +11,7 @@
 #include <sstream>
 #include <cstdlib>
 #include <cfloat>
-#define M_PI 3.14
+#define M_PI 3.14159265f
 
 using namespace std;
 
@@ -107,28 +107,64 @@ void buildCube(Object &object, const GLfloat side, MeshBuilder & builder) {
     builder.addVertex(side, side, -side); // 7 - back top right
 
     builder.addNormal(-1, 0, 0);
-    builder.addFace(0, 4, 2).setNormalIndices(0, 0, 0); 
-    builder.addFace(2, 4, 6).setNormalIndices(0, 0, 0); // left
-
     builder.addNormal(1, 0, 0);
-    builder.addFace(1, 5, 3).setNormalIndices(1, 1, 1);
-    builder.addFace(3, 5, 7).setNormalIndices(1, 1, 1); // right
-
     builder.addNormal(0, 1, 0);
-    builder.addFace(2, 3, 6).setNormalIndices(2, 2, 2);
-    builder.addFace(6, 3, 7).setNormalIndices(2, 2, 2); // top
-
     builder.addNormal(0, -1, 0);
-    builder.addFace(0, 4, 1).setNormalIndices(3, 3, 3);
-    builder.addFace(1, 4, 5).setNormalIndices(3, 3, 3); // bottom
-
     builder.addNormal(0, 0, -1);
-    builder.addFace(4, 6, 5).setNormalIndices(4, 4, 4);
-    builder.addFace(5, 6, 7).setNormalIndices(4, 4, 4); // back
-
     builder.addNormal(0, 0, 1);
-    builder.addFace(0, 1, 2).setNormalIndices(5, 5, 5);
-    builder.addFace(2, 1, 3).setNormalIndices(5, 5, 5); // front
+
+    builder.addUV(0., 0.);
+    builder.addUV(0., 1.);
+    builder.addUV(1., 0.);
+    builder.addUV(1., 1.);
+
+    // left
+    MeshBuilder::Face &left1 = builder.addFace(0, 2, 4);  
+        left1.setNormalIndices(0, 0, 0);
+        left1.setUvIndices(0, 1, 2);
+    MeshBuilder::Face &left2 = builder.addFace(4, 2, 6);
+        left2.setNormalIndices(0, 0, 0);
+        left2.setUvIndices(2, 1, 3);
+    
+    // right
+    MeshBuilder::Face &right1 = builder.addFace(1, 3, 5);
+        right1.setNormalIndices(1, 1, 1);
+        right1.setUvIndices(0, 1, 2);
+    MeshBuilder::Face &right2 = builder.addFace(5, 3, 7);
+        right2.setNormalIndices(1, 1, 1); 
+        right2.setUvIndices(2, 1, 3);
+    
+    // top
+    MeshBuilder::Face &top1 = builder.addFace(2, 6, 3);
+        top1.setNormalIndices(2, 2, 2);
+        top1.setUvIndices(0, 1, 2);
+    MeshBuilder::Face &top2 = builder.addFace(3, 6, 7);
+        top2.setNormalIndices(2, 2, 2);
+        top2.setUvIndices(2, 1, 3);
+
+    // bottom
+    MeshBuilder::Face &bottom1 = builder.addFace(0, 1, 4);
+        bottom1.setNormalIndices(3, 3, 3);
+        bottom1.setUvIndices(0, 1, 2);
+    MeshBuilder::Face &bottom2 = builder.addFace(4, 1, 5);
+        bottom2.setNormalIndices(3, 3, 3); 
+        bottom2.setUvIndices(2, 1, 3);
+
+    // back
+    MeshBuilder::Face &back1 = builder.addFace(4, 5, 6);
+        back1.setNormalIndices(4, 4, 4);
+        back1.setUvIndices(0, 1, 2);
+    MeshBuilder::Face &back2 = builder.addFace(6, 5, 7);
+        back2.setNormalIndices(4, 4, 4); 
+        back2.setUvIndices(2, 1, 3);
+
+    // front
+    MeshBuilder::Face &front1 = builder.addFace(0, 2, 1);
+        front1.setNormalIndices(5, 5, 5);
+        front1.setUvIndices(0, 1, 2);
+    MeshBuilder::Face &front2 = builder.addFace(1, 2, 3);
+        front2.setNormalIndices(5, 5, 5); 
+        front2.setUvIndices(2, 1, 3);
     
     vector<unsigned int> indices;
     vector<Vector3f> vertices;
@@ -138,6 +174,7 @@ void buildCube(Object &object, const GLfloat side, MeshBuilder & builder) {
     builder.unpack(indices, vertices, normals, uvs);
 
     // Sends the data into buffers on the GPU
+    object.sendUvs(uvs);
     object.sendNormals(normals);
     object.sendPrimitives(vertices, indices);
 }
@@ -228,22 +265,10 @@ void buildSkybox(Object &object, const GLfloat side, MeshBuilder & builder) {
 
 void buildSphere(Object &object, const float radius, size_t discLat, size_t discLong, MeshBuilder & builder){ 
 
-    //object->nbVertices = (90 / discLat) * (360 / discLong) * 6 *2; 
-    //object->nbIndices  = (90 / discLat) * (360 / discLong) * 6 *2; 
-    
-    //GLfloat deltaLat=(M_PI/2.0)/20; 
-    //GLfloat deltaLong=(2*M_PI)/discAngle; 
-        
-    //GLfloat vertices[object->nbVertices*4]; 
-    //GLuint indices[object->nbIndices*4]; 
-    //GLfloat normals[object->nbVertices*4]; 
     GLuint nbVertices = (90 / discLat) * (360 / discLong) * 6 *2;
-    //GLuint indexVertices = 0; 
-    //GLdouble a; 
     GLdouble b; 
       
     GLdouble aLong; 
-    //GLdouble bLat; 
   
     // north hemisphere 
     for( b = 0; b <= 90 - discLat; b+=discLat){ 
