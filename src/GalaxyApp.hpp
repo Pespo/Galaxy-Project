@@ -23,11 +23,12 @@ public:
     MoveableCamera* initCamera(const float size, Vector3f position);
     void initGUI();
     void drawGUI();
-    
+
     void renderFrame();
     void animate();
 	void mouseMotionEvent();
 	void mouseButtonEvent();
     void keyEvent();
     void setSkybox(size_t size);
+    void setSystem();
 };

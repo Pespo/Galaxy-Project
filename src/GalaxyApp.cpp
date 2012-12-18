@@ -18,6 +18,8 @@
 
 #include <vector>
 
+#define M_PI  3.14159265f
+
 using namespace std;
 using namespace stein;
 
@@ -32,7 +34,9 @@ GalaxyApp::GalaxyApp() : Application(WIDTH, HEIGHT) {
     _scene.setDefaultShaderID(shaderID);
 
     setSkybox(100);
-    
+
+    setSystem();
+   
 }
 
 GalaxyApp::~GalaxyApp() {
@@ -99,8 +103,13 @@ void GalaxyApp::drawGUI() {
 void GalaxyApp::animate() {
     //_scene.setDrawnObjectModel(0,xRotation(frand()));
     ((MoveableCamera*)_scene.pCamera)->move();
+    //physicManager.physicalObjects[0]->m_position += Vector3f(frand() - frand(), frand() - frand(), frand()- frand());
     physicManager.applySprings();
     physicManager.solve();
+    for(int i = 0; i<physicManager.physicalObjects.size(); ++i){
+        physicManager.physicalObjects[i]->m_rotation += Vector3f(frand()/(M_PI*2), frand()/(M_PI*2), frand()/(M_PI*2));
+        _scene.setDrawnObjectModel(physicManager.physicalObjects[i]->m_ObjectInstanceId, translation(physicManager.physicalObjects[i]->m_position) * xRotation(physicManager.physicalObjects[i]->m_rotation.x) * yRotation(physicManager.physicalObjects[i]->m_rotation.y) * zRotation(physicManager.physicalObjects[i]->m_rotation.z) ); 
+	}
 }
 
 void GalaxyApp::renderFrame() {
@@ -147,26 +156,48 @@ void GalaxyApp::setSkybox(size_t size) {
     buildSquare(skyObject, size, skyBuilder);
 
     GLuint right =_scene.addObjectToDraw(skyObject.id);
-    _scene.setDrawnObjectModel(right, translation(Vector3f(size/2, 0., 0.)) * yRotation(-3.14/2) * zRotation(3.14));
-    _scene.setDrawnObjectTextureID(right, 0, loadTexture( "textures/skybox/right.tga", 3));
+    _scene.setDrawnObjectModel(right, translation(Vector3f(size/2, 0., 0.)) * yRotation(-M_PI/2) );
+    _scene.setDrawnObjectTextureID(right, 0, loadTexture( "texturesTest/skytest/right.tga", 3));
      
     GLuint left =_scene.addObjectToDraw(skyObject.id);
-    _scene.setDrawnObjectModel(left, translation(Vector3f(-1. * size/2, 0., 0.)) * yRotation(3.14/2) * zRotation(3.14));
-    _scene.setDrawnObjectTextureID(left, 0,loadTexture( "textures/skybox/left.tga", 3));
+    _scene.setDrawnObjectModel(left, translation(Vector3f(-1. * size/2, 0., 0.)) * yRotation(M_PI/2) );
+    _scene.setDrawnObjectTextureID(left, 0,loadTexture( "texturesTest/skytest/left.tga", 3));
 
     GLuint front =_scene.addObjectToDraw(skyObject.id);
-    _scene.setDrawnObjectModel(front,translation(Vector3f(0., 0., size/2)) * yRotation(3.14) * zRotation(3.14));
-    _scene.setDrawnObjectTextureID(front, 0, loadTexture( "textures/skybox/front.tga", 3));
+    _scene.setDrawnObjectModel(front,translation(Vector3f(0., 0., size/2)) * yRotation(M_PI) );
+    _scene.setDrawnObjectTextureID(front, 0, loadTexture( "texturesTest/skytest/front.tga", 3));
 
     GLuint back =_scene.addObjectToDraw(skyObject.id);
-    _scene.setDrawnObjectModel(back, translation(Vector3f(0., 0., -1. * size/2)) * zRotation(3.14));
-    _scene.setDrawnObjectTextureID(back, 0, loadTexture( "textures/skybox/back.tga", 3));
+    _scene.setDrawnObjectModel(back, translation(Vector3f(0., 0., -1. * size/2)) );
+    _scene.setDrawnObjectTextureID(back, 0, loadTexture( "texturesTest/skytest/back.tga", 3));
 
     GLuint top =_scene.addObjectToDraw(skyObject.id);
-    _scene.setDrawnObjectModel(top,translation(Vector3f(0., size/2, 0.)) * xRotation(-3.14/2) * zRotation(-3.14/2));
-    _scene.setDrawnObjectTextureID(top, 0, loadTexture( "textures/skybox/top.tga", 3));
+    _scene.setDrawnObjectModel(top,translation(Vector3f(0., size/2, 0.)) * xRotation(-M_PI/2) );
+    _scene.setDrawnObjectTextureID(top, 0, loadTexture( "texturesTest/skytest/top.tga", 3));
 
     GLuint bot =_scene.addObjectToDraw(skyObject.id);
-    _scene.setDrawnObjectModel(bot,translation(Vector3f(0., -1. * size/2, 0.)) * xRotation(3.14/2) * zRotation(3.14/2));
-    _scene.setDrawnObjectTextureID(bot, 0, loadTexture( "textures/skybox/bot.tga", 3));
+    _scene.setDrawnObjectModel(bot,translation(Vector3f(0., -1. * size/2, 0.)) * xRotation(M_PI/2));
+    _scene.setDrawnObjectTextureID(bot, 0, loadTexture( "texturesTest/skytest/bot.tga", 3));
+}
+
+void GalaxyApp::setSystem(){
+
+    GLuint colorShader = loadProgram("shaders/color.glsl");
+
+    Object &sphereObject = _scene.createObject(GL_TRIANGLES);
+    MeshBuilder sphereBuilder = MeshBuilder();
+    buildCube(sphereObject, 0.05, sphereBuilder);
+
+    for(int i=0 ; i<50; ++i) {
+        GLuint sphere1 =_scene.addObjectToDraw(sphereObject.id);
+        _scene.setDrawnObjectColor(sphere1, Color(frand(), frand(), frand()));
+        _scene.setDrawnObjectShaderID(sphere1, colorShader);
+        GLuint spherePhy1 = physicManager.addPhysicToObject(sphere1);
+        //physicManager.setPhysicObjectMass(spherePhy1, 1.);
+        physicManager.setPhysicObjectPosition(spherePhy1, Vector3f(frand()*2, frand()*2, frand()*2));
+	}
+   
+
+    //_scene.setDrawnObjectModel(sphere, translation(Vector3f(size/2, 0., 0.)) * yRotation(-3.14/2) * zRotation(3.14));
+    // Ground_Dirt_02_COLOR
 }

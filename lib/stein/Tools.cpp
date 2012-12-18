@@ -1,6 +1,6 @@
 #include "Tools.hpp"
 #include "stb_image/stb_image.h"
-
+#include "GL/glfw.h"
 #include <iostream>
 #include <string.h>
 #include <fstream>
@@ -120,23 +120,25 @@ GLuint loadTexture(const char* fileName, const int &comp) {
     int c;
     unsigned char *data;
     
-    try {
+   /* try {
 		// Loads the image from a ppm file to an unsigned char array
 		data = stbi_load(fileName, &w, &h, &c, comp);
 	 }
 	 catch (...) {
 		 return 0;
-	}
+	}*/
+
 	//Selects our current unit texture
 	glActiveTexture(GL_TEXTURE0);
 	
+
+        
     // Allocates a texture id
     GLuint textureID = 0;
     glGenTextures(1, &textureID);
-    
     // Selects our current texture
     glBindTexture(GL_TEXTURE_2D, textureID);
-    
+    glfwLoadTexture2D( fileName , GLFW_BUILD_MIPMAPS_BIT);
     // How to handle not normalised uvs
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -145,7 +147,7 @@ GLuint loadTexture(const char* fileName, const int &comp) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     // Specifies which image will be used for this texture objet
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
   
     return textureID;
 }

@@ -7,6 +7,7 @@ using namespace stein;
 
 class Attraction : public Spring {
 public:
+	Attraction();
     Attraction(float force);
     virtual void generateForces(Particle *p1, Particle *p2);
 

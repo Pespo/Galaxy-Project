@@ -11,7 +11,7 @@ public:
     float m_mass;
     Vector3f m_velocity;
     Vector3f m_force;
-
-	Particle(size_t ObjectInstanceId, Vector3f position, float mass, Vector3f velo, Vector3f force) : m_ObjectInstanceId(ObjectInstanceId), m_position(position), m_mass(mass), m_velocity(velo), m_force(force) {}
+    Vector3f m_rotation;
+	Particle(size_t ObjectInstanceId, Vector3f position, float mass, Vector3f velo, Vector3f force, Vector3f rotation) : m_ObjectInstanceId(ObjectInstanceId), m_position(position), m_mass(mass), m_velocity(velo), m_force(force), m_rotation(rotation) {}
 	~Particle(){}
 };
