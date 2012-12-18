@@ -7,6 +7,8 @@
 #include "math/Matrix4f.hpp"
 #include "math/Vector3f.hpp"
 
+#include <stein/Scene.hpp>
+
 // C++
 #include <string>
 #include <vector>
@@ -32,9 +34,9 @@ void printShaderLog(GLuint shaderId);
 std::string * loadFile(const std::string & fileName);
 unsigned char * loadPPM(const char* filename, GLuint &width, GLuint &height);
 
-void setMatricesInShader(GLuint shaderId, const Matrix4f &model, const Matrix4f &view, const Vector3f &eye, const Matrix4f &projection);
-void setLightInShader(GLuint shaderID, GLfloat * position, GLfloat power);
-void setMaterialInShader(GLuint shaderID, GLfloat * ambient, GLfloat * diffuse, GLfloat * specular, GLfloat ka, GLfloat kd, GLfloat ks, GLfloat shininess);
+void setMatricesInShader(GLuint shaderId, const Matrix4f &model, const Matrix4f &view, const Vector3f &cameraPosition, const Matrix4f &projection);
+void setLightInShader(GLuint shaderID, Light* light);
+void setMaterialInShader(GLuint shaderID, GLuint material);
 void setFilledDataInShader(GLuint shaderID, GLboolean positions, GLboolean normals, GLboolean uvs, GLboolean colors);
 void setTextureUnitsInShader(GLuint shaderID);
 

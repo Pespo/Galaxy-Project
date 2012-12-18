@@ -6,7 +6,7 @@ solution "Galaxy project"
    project "galaxy_project"
       kind "ConsoleApp"
       language "C++"
-      files { "src/*.hpp", "src/*.cpp", "src/*.h", "src/physics/*.hpp", "src/physics/*.cpp" }
+      files { "src/*.hpp", "src/*.cpp", "src/*.h", "src/physics/*.hpp", "src/physics/*.cpp", "src/gui/*.cpp", "src/gui/*.hpp", "src/gui/*.h" }
       includedirs { "lib/glfw/include", "src", "lib/" }
       links { "glew", "glfw", "stb_image", "stein"}
       defines { "GLEW_STATIC" }

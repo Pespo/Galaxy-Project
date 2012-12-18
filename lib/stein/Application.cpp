@@ -79,14 +79,7 @@ void Application::initGlfw() {
     setBackgroundColor(Color::BLACK);
     
     // Sets the width of the lines
-    //glLineWidth(2);
-
-    // Init UI
-	/*if (!imguiRenderGLInit("DroidSans.ttf"))
-    {
-        fprintf(stderr, "Could not init GUI renderer.\n");
-        exit(EXIT_FAILURE);
-    }*/
+    glLineWidth(2);
 }
 
 // Adapts the drawing to the new size of the window
@@ -143,11 +136,7 @@ void Application::animate() {}
 
 void Application::loop() {
     do {
-        //Update camera view
-	    //_scene.pCamera->updateView();
-        //initTimers();
         double t = glfwGetTime();
-
         if(t - _lastStartTime >= _frameDuration) {
             mouseMotionEvent();
             mouseButtonEvent();

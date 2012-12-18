@@ -6,6 +6,8 @@
 #include "gui/imguiRenderGL.h"
 
 #include "GL/glfw.h"
+#include <stein/Material.hpp>
+#include <stein/Light.hpp>
 #include <stein/Scene.hpp>
 #include <stein/Object.hpp>
 #include <stein/Tools.hpp>
@@ -21,6 +23,14 @@
 using namespace std;
 using namespace stein;
 
+enum shaderType {
+    COLOR, TEXTURE, MATERIAL
+};
+
+enum materialType {
+    JADE, CHROME
+};
+
 GalaxyApp::GalaxyApp() : Application(WIDTH, HEIGHT) {
 
     _exMouseXPos = WIDTH/2;
@@ -28,17 +38,27 @@ GalaxyApp::GalaxyApp() : Application(WIDTH, HEIGHT) {
 
     MoveableCamera * camera = initCamera(.06, Vector3f(0, 0, -5));
 
-    GLuint shaderID = loadProgram("shaders/1.glsl");
-    _scene.setDefaultShaderID(shaderID);
+    // Loaders
+    loadShaders();
+    // Builds
+    //buildSkybox(100);
+    buildWoman(10);
 
-    setSkybox(100);
-    
+    //initGUI();
+
 }
 
 GalaxyApp::~GalaxyApp() {
     glfwTerminate();
 }
 
+// Load shaders
+void GalaxyApp::loadShaders() {
+    _scene.shaders.push_back(loadProgram("shaders/colorShader.glsl"));
+    _scene.shaders.push_back(loadProgram("shaders/textureShader.glsl"));
+    _scene.shaders.push_back(loadProgram("shaders/materialShader.glsl"));
+    _scene.setDefaultShaderID(COLOR);
+}
 
 MoveableCamera* GalaxyApp::initCamera(const float size, Vector3f position) {
     _scene.pCamera = new MoveableCamera();
@@ -141,7 +161,8 @@ void GalaxyApp::keyEvent() {
     if(glfwGetKey('H') == GLFW_PRESS) hideCursor('H');
 }
 
-void GalaxyApp::setSkybox(size_t size) {
+// Builds the skybox
+void GalaxyApp::buildSkybox(size_t size) {
     Object &skyObject = _scene.createObject(GL_TRIANGLES);
     MeshBuilder skyBuilder = MeshBuilder();
     buildSquare(skyObject, size, skyBuilder);
@@ -169,4 +190,22 @@ void GalaxyApp::setSkybox(size_t size) {
     GLuint bot =_scene.addObjectToDraw(skyObject.id);
     _scene.setDrawnObjectModel(bot,translation(Vector3f(0., -1. * size/2, 0.)) * xRotation(3.14/2) * zRotation(3.14/2));
     _scene.setDrawnObjectTextureID(bot, 0, loadTexture( "textures/skybox/bot.tga", 3));
+}
+
+// Builds the woman
+void GalaxyApp::buildWoman(size_t size) {
+
+    GLuint materialShader = loadProgram("shaders/materialShader.glsl");
+
+    Object &womanObject = _scene.createObject(GL_TRIANGLES);
+
+    MeshBuilder womanBuilder = MeshBuilder();
+    buildObjectGeometryFromOBJ(womanObject, "res/objs/woman.obj", false, false, womanBuilder);
+
+    GLuint woman =_scene.addObjectToDraw(womanObject.id);
+    _scene.setDrawnObjectShaderID(woman, materialShader);
+    _scene.setDrawnObjectColor(woman, Color(1., 1., 0.));
+    _scene.setDrawnObjectModel(woman, translation(Vector3f( 0. , 0., 0.)) * scale(Vector3f( 5. , 5., 5.)));
+    _scene.setDrawnObjectLightID(woman, 0);
+    _scene.setDrawnObjectMaterialID(woman, JADE);
 }
