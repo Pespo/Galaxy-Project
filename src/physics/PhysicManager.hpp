@@ -32,7 +32,7 @@ public:
     void solve();
     void applySprings();
 
-    const static size_t maxPhysicalObjects = 200; // An initial limit of drawable objects
+    const static size_t maxPhysicalObjects = 500; // An initial limit of drawable objects
     std::vector<Particle*> physicalObjects;
 
     HookSpring hookSpring;

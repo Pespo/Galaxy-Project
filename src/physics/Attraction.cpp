@@ -3,7 +3,7 @@
 
 using namespace stein;
 
-Attraction::Attraction() : m_force(100) {}
+Attraction::Attraction() : m_force(1) {}
 
 Attraction::Attraction(float force = 10) :  m_force(force) {}
 

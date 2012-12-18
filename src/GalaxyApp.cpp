@@ -7,6 +7,8 @@
 #include "gui/imguiRenderGL.h"
 
 #include "GL/glfw.h"
+#include <stein/Material.hpp>
+#include <stein/Light.hpp>
 #include <stein/Scene.hpp>
 #include <stein/Object.hpp>
 #include <stein/Tools.hpp>
@@ -16,13 +18,21 @@
 #include <stein/math/Vector3f.hpp>
 
 #include <iostream>
-
+#include <cmath>
 #include <vector>
 
 #define M_PI  3.14159265f
 
 using namespace std;
 using namespace stein;
+
+enum shaderType {
+    COLOR, TEXTURE, MATERIAL
+};
+
+enum materialType {
+    JADE, CHROME
+};
 
 GalaxyApp::GalaxyApp() : Application(WIDTH, HEIGHT) {
 
@@ -33,10 +43,11 @@ GalaxyApp::GalaxyApp() : Application(WIDTH, HEIGHT) {
 
     MoveableCamera * camera = initCamera(.06, Vector3f(0, 0, -5));
 
-    GLuint shaderID = loadProgram("shaders/1.glsl");
-    _scene.setDefaultShaderID(shaderID);
-
-    setSkybox(100); 
+    // Loaders
+    loadShaders();
+    // Builds
+    buildSkybox(100);
+    buildWoman(10);
 
     setSystem();
    
@@ -46,6 +57,13 @@ GalaxyApp::~GalaxyApp() {
     glfwTerminate();
 }
 
+// Load shaders
+void GalaxyApp::loadShaders() {
+    shaders[COLOR] = loadProgram("shaders/colorShader.glsl");
+    shaders[TEXTURE] = loadProgram("shaders/textureShader.glsl");
+    shaders[MATERIAL] = loadProgram("shaders/materialShader.glsl");
+    _scene.setDefaultShaderID(shaders[COLOR]);
+}
 
 MoveableCamera* GalaxyApp::initCamera(const float size, Vector3f position) {
     _scene.pCamera = new MoveableCamera();
@@ -106,9 +124,9 @@ void GalaxyApp::drawGUI() {
 }
 
 void GalaxyApp::animate() {
-    //_scene.setDrawnObjectModel(0,xRotation(frand()));
+
+   // physicManager.hookSpring.m_freeLength = physicManager.hookSpring.m_freeLength < 0.5 ? 0.6 : 0.4 ; 
     ((MoveableCamera*)_scene.pCamera)->move();
-    //physicManager.physicalObjects[0]->m_position += Vector3f(frand() - frand(), frand() - frand(), frand()- frand());
     physicManager.applySprings();
     physicManager.solve();
     for(int i = 0; i<physicManager.physicalObjects.size(); ++i){
@@ -155,7 +173,8 @@ void GalaxyApp::keyEvent() {
     if(glfwGetKey('H') == GLFW_PRESS) hideCursor('H');
 }
 
-void GalaxyApp::setSkybox(size_t size) {
+// Builds the skybox
+void GalaxyApp::buildSkybox(size_t size) {
     Object &skyObject = _scene.createObject(GL_TRIANGLES);
     MeshBuilder skyBuilder = MeshBuilder();
     buildSquare(skyObject, size, skyBuilder);
@@ -163,43 +182,63 @@ void GalaxyApp::setSkybox(size_t size) {
     GLuint right =_scene.addObjectToDraw(skyObject.id);
     _scene.setDrawnObjectModel(right, translation(Vector3f(size/2, 0., 0.)) * yRotation(-M_PI/2) );
     _scene.setDrawnObjectTextureID(right, 0, loadTexture( "textures/skybox/right.tga"));
+    _scene.setDrawnObjectShaderID(right, shaders[TEXTURE]);
      
     GLuint left =_scene.addObjectToDraw(skyObject.id);
     _scene.setDrawnObjectModel(left, translation(Vector3f(-1. * size/2, 0., 0.)) * yRotation(M_PI/2) );
     _scene.setDrawnObjectTextureID(left, 0,loadTexture( "textures/skybox/left.tga"));
+    _scene.setDrawnObjectShaderID(left, shaders[TEXTURE]);
 
     GLuint front =_scene.addObjectToDraw(skyObject.id);
     _scene.setDrawnObjectModel(front,translation(Vector3f(0., 0., size/2)) * yRotation(M_PI) );
     _scene.setDrawnObjectTextureID(front, 0, loadTexture( "textures/skybox/front.tga"));
+    _scene.setDrawnObjectShaderID(front, shaders[TEXTURE]);
 
     GLuint back =_scene.addObjectToDraw(skyObject.id);
     _scene.setDrawnObjectModel(back, translation(Vector3f(0., 0., -1. * size/2)) );
     _scene.setDrawnObjectTextureID(back, 0, loadTexture( "textures/skybox/back.tga"));
+    _scene.setDrawnObjectShaderID(back, shaders[TEXTURE]);
 
     GLuint top =_scene.addObjectToDraw(skyObject.id);
     _scene.setDrawnObjectModel(top,translation(Vector3f(0., size/2, 0.)) * xRotation(-M_PI/2) );
     _scene.setDrawnObjectTextureID(top, 0, loadTexture( "textures/skybox/top.tga"));
+    _scene.setDrawnObjectShaderID(top, shaders[TEXTURE]);
 
     GLuint bot =_scene.addObjectToDraw(skyObject.id);
     _scene.setDrawnObjectModel(bot,translation(Vector3f(0., -1. * size/2, 0.)) * xRotation(M_PI/2));
     _scene.setDrawnObjectTextureID(bot, 0, loadTexture( "textures/skybox/bot.tga"));
+    _scene.setDrawnObjectShaderID(bot, shaders[TEXTURE]);
+}
+
+// Builds the woman
+void GalaxyApp::buildWoman(size_t size) {
+    Object &womanObject = _scene.createObject(GL_TRIANGLES);
+
+    MeshBuilder womanBuilder = MeshBuilder();
+    buildObjectGeometryFromOBJ(womanObject, "res/objs/woman.obj", false, false, womanBuilder);
+
+    GLuint woman =_scene.addObjectToDraw(womanObject.id);
+    _scene.setDrawnObjectShaderID(woman, shaders[MATERIAL]);
+    _scene.setDrawnObjectColor(woman, Color(1., 1., 0.));
+    _scene.setDrawnObjectModel(woman, translation(Vector3f( -3.5 , -9., -3)) * yRotation(-M_PI/8) * scale(Vector3f( 5. , 5., 5.)));
+    _scene.setDrawnObjectMaterialID(woman, JADE);
 }
 
 void GalaxyApp::setSystem(){
 
-    GLuint colorShader = loadProgram("shaders/color.glsl");
-
     Object &sphereObject = _scene.createObject(GL_TRIANGLES);
     MeshBuilder sphereBuilder = MeshBuilder();
-    buildCube(sphereObject, 0.2, sphereBuilder);
+    buildCube(sphereObject, 0.02, sphereBuilder);
 
-    for(int i=0 ; i<100; ++i) {
-        GLuint sphere1 =_scene.addObjectToDraw(sphereObject.id);
-        _scene.setDrawnObjectColor(sphere1, Color(frand(), frand(), frand()));
-        _scene.setDrawnObjectShaderID(sphere1, colorShader);
-        GLuint spherePhy1 = physicManager.addPhysicToObject(sphere1);
+    for(int i=0 ; i<50; ++i) {
+		std::cout << i << std::endl;
+        GLuint sphere =_scene.addObjectToDraw(sphereObject.id);
+        _scene.setDrawnObjectColor(sphere, Color(cos(i * 50.),  sin(i * 50.),  sin(i * 50.)));
+        _scene.setDrawnObjectShaderID(sphere, shaders[COLOR]);
+        //_scene.setDrawnObjectMaterialID(sphere, JADE);
+        GLuint spherePhy1 = physicManager.addPhysicToObject(sphere);
         //physicManager.setPhysicObjectMass(spherePhy1, 1.);
-        physicManager.setPhysicObjectPosition(spherePhy1, Vector3f(frand()*2, frand()*2, frand()*2));
+        physicManager.setPhysicObjectPosition(spherePhy1, Vector3f(cos(i * 50.), sin(i * 50.), (sin(i * 50.) + cos(i * 50.))/2));
 	}
     
     //_scene.setDrawnObjectModel(sphere, translation(Vector3f(size/2, 0., 0.)) * yRotation(-3.14/2) * zRotation(3.14));

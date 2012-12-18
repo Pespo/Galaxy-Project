@@ -20,7 +20,9 @@ public:
     GalaxyApp();
     ~GalaxyApp();
 
+    GLuint shaders[3];
     MoveableCamera* initCamera(const float size, Vector3f position);
+    void loadShaders();
     void initGUI();
     void drawGUI();
 
@@ -29,6 +31,7 @@ public:
 	void mouseMotionEvent();
 	void mouseButtonEvent();
     void keyEvent();
-    void setSkybox(size_t size);
+    void buildSkybox(size_t size);
+    void buildWoman(size_t size);
     void setSystem();
 };

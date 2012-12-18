@@ -14,15 +14,8 @@ namespace stein {
 
 // Default constructor
 Scene::Scene() :
-    defaultColor(Color::WHITE), defaultTransformation(Matrix4f::identity()), defaultShaderID(1), defaultTextureID0(NA), defaultTextureID1(NA) {
-
-    // Light creation
-    GLfloat lightPosition[] = { 0.0, 0.0, 1.0, 1.0 };
-    GLfloat lightPower = 1.0;
-    setLight(lightPosition, lightPower);
-
+    defaultColor(Color::RED), defaultTransformation(Matrix4f::identity()), defaultShaderID(0), defaultTextureID0(NA), defaultTextureID1(NA), defaultMaterialID(NA) {
     /*glEnable(GL_CULL_FACE);
-
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glEnable(GL_ALPHA_TEST);
@@ -51,9 +44,10 @@ Object& Scene::createObject(GLenum primitiveType) {
 // after the last added, and only if the array is not full
 GLuint Scene::addObjectToDraw(GLuint indexStoredObject) {
     const size_t size = drawnObjects.size();
+	std::cout << maxDrawnObjects << std::endl;
     if (size >= maxDrawnObjects)
         throw std::runtime_error("maximum number of drawn objects reached");
-    drawnObjects.push_back(ObjectInstance(size, indexStoredObject, defaultShaderID, defaultTextureID0, defaultTextureID1, defaultTransformation, defaultColor));
+    drawnObjects.push_back(ObjectInstance(size, indexStoredObject, defaultShaderID, defaultTextureID0, defaultTextureID1, defaultTransformation, defaultColor, defaultMaterialID));
     return size;
 }
 
@@ -67,6 +61,12 @@ void Scene::setDrawnObjectColor(GLuint indexDrawnObject, const Color &color) {
 void Scene::setDrawnObjectModel(GLuint indexDrawnObject, const Matrix4f &model) {
     assert(indexDrawnObject<drawnObjects.size());
     drawnObjects[indexDrawnObject].transformation = model;
+}
+
+// Sets the material for the drawn object of index indexDrawnObject
+void Scene::setDrawnObjectMaterialID(GLuint indexDrawnObject, GLuint materialID) {
+    assert(indexDrawnObject<drawnObjects.size());
+    drawnObjects[indexDrawnObject].materialId = materialID;
 }
 
 // Sets the if of the shader to use on the drawn object of index indexDrawObject
@@ -95,6 +95,10 @@ void Scene::setDefaultModel(const Matrix4f &_defaultModel) {
         drawnObjects[i].transformation = defaultTransformation;
 }
 
+void Scene::setDefaultMaterialID(GLuint id) {
+    defaultMaterialID = id;
+}
+
 // Sets default shader ID
 void Scene::setDefaultShaderID(GLuint id) {
     defaultShaderID = id;
@@ -106,44 +110,41 @@ void Scene::setDefaultTextureID(GLuint textureUnit, GLuint textureID) {
     if (textureUnit == 1) defaultTextureID1 = textureID;
 }
 
-// Sets light data to use in shader
-void Scene::setLight(GLfloat * position, GLfloat power) {
-    for (GLuint iCoord = 0; iCoord < 4; iCoord++)
-        lightPosition[iCoord] = position[iCoord];
-    lightPower = power;
-}
-
 // Decides what will elements drawn after this call will look like
 void Scene::setAppearance(const ObjectInstance &instance) {
     const size_t shaderId = instance.shaderId;
-
     glUseProgram(shaderId); // From now on, this shader will be used.
 
     // We use the specific values of model per object
     setMatricesInShader(shaderId, instance.transformation, pCamera->getView(), pCamera->getPosition(), pCamera->getProjection());
-    glUniform4fv(glGetUniformLocation(shaderId, "color"), 1, instance.color);
+    glUniform4fv(glGetUniformLocation(instance.shaderId, "color"), 1, instance.color);
+
+    if(instance.materialId != NA) {
+        // Sets the material
+		setMaterialInShader(shaderId, instance.materialId);
+    }
+    
+    /*if(instance.lightId != NA) {
+        // Sets the light
+        setLightInShader(shaderId, lights[instance.lightId]);
+    }*/
+
+    if(instance.textureId0 != NA) {
+        //Selects our current texture for unit 0
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, instance.textureId0);
+        if(instance.textureId1 != NA) {
+            //Selects our current texture for unit 1
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, instance.textureId1);
+        }
+        setTextureUnitsInShader(shaderId);
+    }
 
     // Specifies which VBO were filled
     const Object * pObject = storedObjects[instance.objectId];
     assert(pObject);
     setFilledDataInShader(shaderId, pObject->hasPrimitives(), pObject->hasNormals(), pObject->hasUvs(), pObject->hasColors());
-    
-    // Sets the light in the current shader
-    setLightInShader(shaderId, lightPosition, lightPower);
-
-    if(instance.textureId0 != NA){
-        //Selects our current texture for unit 0
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, instance.textureId0);
-    }
-
-    if(instance.textureId0 != NA){
-        //Selects our current texture for unit 1
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, instance.textureId1);
-    }
-    
-    setTextureUnitsInShader(shaderId);
 }
 
 // Draw all Objects

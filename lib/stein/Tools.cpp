@@ -1,5 +1,4 @@
 #include "Tools.hpp"
-#include "stb_image/stb_image.h"
 #include "GL/glfw.h"
 #include <iostream>
 #include <string.h>
@@ -240,21 +239,16 @@ void setMatricesInShader(GLuint shaderID, const Matrix4f &model, const Matrix4f 
 }
 
 // Passing the light to the shader
-void setLightInShader(GLuint shaderID, GLfloat * position, GLfloat power) {
+void setLightInShader(GLuint shaderID, Light* light) {
     // Passing the light to the shader
-    glUniform4fv(glGetUniformLocation(shaderID, "light.position"), 1, position);
-    glUniform1f(glGetUniformLocation(shaderID, "light.power"), power);
+    glUniform4fv(glGetUniformLocation(shaderID, "light.position"), 1, light->position);
+    std::cout << "l : " << light->position[0] << std::endl;
+    glUniform1f(glGetUniformLocation(shaderID, "light.power"), light->power);
 }
 
 // Passing the material to the shader
-void setMaterialInShader(GLuint shaderID, GLfloat * ambient, GLfloat * diffuse, GLfloat * specular, GLfloat ka, GLfloat kd, GLfloat ks, GLfloat shininess) {
-    glUniform4fv(glGetUniformLocation(shaderID, "material.ambient"), 1, ambient);
-    glUniform4fv(glGetUniformLocation(shaderID, "material.diffuse"), 1, diffuse);
-    glUniform4fv(glGetUniformLocation(shaderID, "material.specular"), 1, specular);
-    glUniform1f(glGetUniformLocation(shaderID, "material.ka"), ka);
-    glUniform1f(glGetUniformLocation(shaderID, "material.kd"), kd);
-    glUniform1f(glGetUniformLocation(shaderID, "material.ks"), ks);
-    glUniform1f(glGetUniformLocation(shaderID, "material.shininess"), shininess);
+void setMaterialInShader(GLuint shaderID, GLuint mat) {
+    glUniform1ui(glGetUniformLocation(shaderID, "material"), mat);
 }
 
 // Change color in the material in the shader (diffuse component)

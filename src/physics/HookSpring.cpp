@@ -5,7 +5,7 @@
 using namespace std;
 using namespace stein;
 
-HookSpring::HookSpring() : m_k(2), m_freeLength(10), m_epsilon(0.000001) {}
+HookSpring::HookSpring() : m_k(2), m_freeLength(0.5), m_epsilon(0.000001) {}
 
 HookSpring::HookSpring(float k = 1, float freeLength = 0.4, float epsilon = 0.000001) : m_k(k), m_freeLength(freeLength), m_epsilon(epsilon) {}
 
