@@ -20,6 +20,7 @@ public:
     GalaxyApp();
     ~GalaxyApp();
 
+    GLuint shaders[3];
     MoveableCamera* initCamera(const float size, Vector3f position);
     void loadShaders();
     void initGUI();

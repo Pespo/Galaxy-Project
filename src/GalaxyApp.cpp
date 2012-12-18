@@ -49,15 +49,16 @@ GalaxyApp::GalaxyApp() : Application(WIDTH, HEIGHT) {
 }
 
 GalaxyApp::~GalaxyApp() {
+    //delete [] shaders;
     glfwTerminate();
 }
 
 // Load shaders
 void GalaxyApp::loadShaders() {
-    _scene.shaders.push_back(loadProgram("shaders/colorShader.glsl"));
-    _scene.shaders.push_back(loadProgram("shaders/textureShader.glsl"));
-    _scene.shaders.push_back(loadProgram("shaders/materialShader.glsl"));
-    _scene.setDefaultShaderID(COLOR);
+    shaders[COLOR] = loadProgram("shaders/colorShader.glsl");
+    shaders[TEXTURE] = loadProgram("shaders/textureShader.glsl");
+    shaders[MATERIAL] = loadProgram("shaders/materialShader.glsl");
+    _scene.setDefaultShaderID(shaders[COLOR]);
 }
 
 MoveableCamera* GalaxyApp::initCamera(const float size, Vector3f position) {
@@ -194,18 +195,14 @@ void GalaxyApp::buildSkybox(size_t size) {
 
 // Builds the woman
 void GalaxyApp::buildWoman(size_t size) {
-
-    GLuint materialShader = loadProgram("shaders/materialShader.glsl");
-
     Object &womanObject = _scene.createObject(GL_TRIANGLES);
 
     MeshBuilder womanBuilder = MeshBuilder();
     buildObjectGeometryFromOBJ(womanObject, "res/objs/woman.obj", false, false, womanBuilder);
 
     GLuint woman =_scene.addObjectToDraw(womanObject.id);
-    _scene.setDrawnObjectShaderID(woman, materialShader);
+    _scene.setDrawnObjectShaderID(woman, shaders[MATERIAL]);
     _scene.setDrawnObjectColor(woman, Color(1., 1., 0.));
     _scene.setDrawnObjectModel(woman, translation(Vector3f( 0. , 0., 0.)) * scale(Vector3f( 5. , 5., 5.)));
-    _scene.setDrawnObjectLightID(woman, 0);
     _scene.setDrawnObjectMaterialID(woman, JADE);
 }

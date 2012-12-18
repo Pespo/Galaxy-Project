@@ -14,7 +14,7 @@ namespace stein {
 
 // Default constructor
 Scene::Scene() :
-    defaultColor(Color::RED), defaultTransformation(Matrix4f::identity()), defaultShaderID(0), defaultTextureID0(NA), defaultTextureID1(NA), defaultMaterialID(NA), defaultLightID(NA) {
+    defaultColor(Color::RED), defaultTransformation(Matrix4f::identity()), defaultShaderID(0), defaultTextureID0(NA), defaultTextureID1(NA), defaultMaterialID(NA) {
     /*glEnable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
@@ -46,7 +46,7 @@ GLuint Scene::addObjectToDraw(GLuint indexStoredObject) {
     const size_t size = drawnObjects.size();
     if (size >= maxDrawnObjects)
         throw std::runtime_error("maximum number of drawn objects reached");
-    drawnObjects.push_back(ObjectInstance(size, indexStoredObject, defaultShaderID, defaultTextureID0, defaultTextureID1, defaultTransformation, defaultColor, defaultMaterialID, defaultLightID));
+    drawnObjects.push_back(ObjectInstance(size, indexStoredObject, defaultShaderID, defaultTextureID0, defaultTextureID1, defaultTransformation, defaultColor, defaultMaterialID));
     return size;
 }
 
@@ -80,11 +80,6 @@ void Scene::setDrawnObjectTextureID(GLuint indexDrawnObject, GLuint textureUnit,
     if (textureUnit == 1) drawnObjects[indexDrawnObject].textureId0 = textureID;
 }
 
-void Scene::setDrawnObjectLightID(GLuint indexDrawnObject, GLuint lightID) {
-    assert(indexDrawnObject<drawnObjects.size());
-    drawnObjects[indexDrawnObject].lightId = lightID;
-}
-
 // Sets the light
 void Scene::setDefaultColor(const Color &color) {
     defaultColor = color;
@@ -106,10 +101,6 @@ void Scene::setDefaultMaterialID(GLuint id) {
 // Sets default shader ID
 void Scene::setDefaultShaderID(GLuint id) {
     defaultShaderID = id;
-}
-
-void Scene::setDefaultLightID(GLuint id) {
-    defaultLightID = id;
 }
 
 //Sets the ID of the texture to use on the drawn object of index indexDrawnObject
