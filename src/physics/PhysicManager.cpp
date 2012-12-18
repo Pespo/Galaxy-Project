@@ -78,8 +78,10 @@ void PhysicManager::solve(){
 
 void PhysicManager::applySprings(){
 	for(int i=1; i < physicalObjects.size(); ++i) {
-        //attraction.generateForces(physicalObjects[i], physicalObjects[i-1]);
-        for(int j=i+1; j < physicalObjects.size(); ++j)
-		  hookSpring.generateForces(physicalObjects[i], physicalObjects[j]);
-	}
+        attraction.generateForces(physicalObjects[i], physicalObjects[i-1]);
+        for(int j=i+1; j < physicalObjects.size(); ++j){
+            hookSpring.generateForces(physicalObjects[i], physicalObjects[j]);
+            cineticBrake.generateForces(physicalObjects[i], physicalObjects[j]);
+		}
+    }
 }

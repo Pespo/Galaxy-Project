@@ -73,7 +73,7 @@ Material setMaterial() {
 void main()
 {   
     Material mat = setMaterial();
-    vec4 lposition = vec4 (5., 5., 5., 1.);
+    vec4 lposition = vec4 (0., 0., 0., 1.);
     float lpower = 1.;
     vec4 diffuseColorMix=vec4(mat.diffuse);
     // If color

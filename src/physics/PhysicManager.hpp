@@ -3,6 +3,7 @@
 #include "Physics/Particle.hpp"
 #include "Physics/LeapfrogSolver.hpp"
 #include "Physics/GravitySpring.hpp"
+#include "Physics/cineticBrake.hpp"
 #include "Physics/HookSpring.hpp"
 #include "Physics/Attraction.hpp"
 #include <stein/math/Vector3f.hpp>
@@ -31,11 +32,12 @@ public:
     void solve();
     void applySprings();
 
-    const static size_t maxPhysicalObjects = 200; // An initial limit of drawable objects
+    const static size_t maxPhysicalObjects = 500; // An initial limit of drawable objects
     std::vector<Particle*> physicalObjects;
 
     HookSpring hookSpring;
     Attraction attraction;
+    CineticBrake cineticBrake;
     LeapfrogSolver solver; // Calculates objects movements
 
 private:

@@ -1,7 +1,6 @@
 #include "Application.hpp"
 #include "GLHeaders.hpp"
 #include "Scene.hpp"
-#include "stb_image/stb_image.h"
 #include "GL/glfw.h"
 #include <iostream>
 

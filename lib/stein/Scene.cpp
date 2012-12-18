@@ -44,6 +44,7 @@ Object& Scene::createObject(GLenum primitiveType) {
 // after the last added, and only if the array is not full
 GLuint Scene::addObjectToDraw(GLuint indexStoredObject) {
     const size_t size = drawnObjects.size();
+	std::cout << maxDrawnObjects << std::endl;
     if (size >= maxDrawnObjects)
         throw std::runtime_error("maximum number of drawn objects reached");
     drawnObjects.push_back(ObjectInstance(size, indexStoredObject, defaultShaderID, defaultTextureID0, defaultTextureID1, defaultTransformation, defaultColor, defaultMaterialID));
@@ -116,7 +117,7 @@ void Scene::setAppearance(const ObjectInstance &instance) {
 
     // We use the specific values of model per object
     setMatricesInShader(shaderId, instance.transformation, pCamera->getView(), pCamera->getPosition(), pCamera->getProjection());
-    glUniform4fv(glGetUniformLocation(shaderId, "color"), 1, instance.color);
+    glUniform4fv(glGetUniformLocation(instance.shaderId, "color"), 1, instance.color);
 
     if(instance.materialId != NA) {
         // Sets the material
