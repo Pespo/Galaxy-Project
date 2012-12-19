@@ -74,7 +74,7 @@ void main()
 {   
     Material mat = setMaterial();
     vec4 lposition = vec4 (0., 0., 0., 1.);
-    float lpower = 1.;
+    float lpower = 2.;
     vec4 diffuseColorMix=vec4(mat.diffuse);
     // If color
     if (filledData[3]) diffuseColorMix=mix(localColor, mat.diffuse, 0.3);

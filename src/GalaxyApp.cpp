@@ -35,7 +35,7 @@ enum materialType {
 };
 
 GalaxyApp::GalaxyApp() : Application(WIDTH, HEIGHT) {
-
+    
     initGUI();
 
     _exMouseXPos = WIDTH/2;
@@ -43,6 +43,8 @@ GalaxyApp::GalaxyApp() : Application(WIDTH, HEIGHT) {
 
     MoveableCamera * camera = initCamera(.06, Vector3f(0, 0, -5));
 
+    // Physics
+    initPhysics();
     // Loaders
     loadShaders();
     // Builds
@@ -50,11 +52,19 @@ GalaxyApp::GalaxyApp() : Application(WIDTH, HEIGHT) {
     buildWoman(10);
 
     setSystem();
+    
+    setDragon();
+	setPills();
+	//PlaySound("res/chimes.wav", NULL, SND_ASYNC|SND_FILENAME|SND_LOOP);
    
 }
 
 GalaxyApp::~GalaxyApp() {
     glfwTerminate();
+}
+
+void GalaxyApp::initPhysics(){
+    _bias = 0.1;
 }
 
 // Load shaders
@@ -80,7 +90,7 @@ void GalaxyApp::initGUI() {
         exit(EXIT_FAILURE);
     }
 
-    _bias = 0.001f;
+    //_bias = 0.001f;
 }
 
 void GalaxyApp::drawGUI() {
@@ -114,7 +124,7 @@ void GalaxyApp::drawGUI() {
     int logScroll = 0;
     imguiBeginScrollArea("Settings", width - 210, height - 310, 200, 300, &logScroll);
     imguiSlider("bias", &_bias, 0.0000, 0.1, 0.0005);
-    imguiSlider("bias", &physicManager.hookSpring.m_freeLength, 0.5, 10, 0.5);
+    //imguiSlider("bias", &physicManager.hookSpring.m_freeLength, 0.5, 10, 0.5);
     imguiEndScrollArea();
     imguiEndFrame();
 
@@ -124,15 +134,30 @@ void GalaxyApp::drawGUI() {
 }
 
 void GalaxyApp::animate() {
-
-   // physicManager.hookSpring.m_freeLength = physicManager.hookSpring.m_freeLength < 0.5 ? 0.6 : 0.4 ; 
+       
     ((MoveableCamera*)_scene.pCamera)->move();
-    physicManager.applySprings();
-    physicManager.solve();
-    for(int i = 0; i<physicManager.physicalObjects.size(); ++i){
-        physicManager.physicalObjects[i]->m_rotation += Vector3f(frand()/(M_PI*2), frand()/(M_PI*2), frand()/(M_PI*2));
-        _scene.setDrawnObjectModel(physicManager.physicalObjects[i]->m_ObjectInstanceId, translation(physicManager.physicalObjects[i]->m_position) * xRotation(physicManager.physicalObjects[i]->m_rotation.x) * yRotation(physicManager.physicalObjects[i]->m_rotation.y) * zRotation(physicManager.physicalObjects[i]->m_rotation.z) ); 
+
+    float d =0; Vector3f direction;
+    for(int i = 0; i < systems[2].physicalObjects.size(); ++i) {
+        if((systems[1].physicalObjects[0]->m_position - systems[2].physicalObjects[i]->m_position).norm() > (d)){
+			
+            d = (systems[1].physicalObjects[0]->m_position - systems[2].physicalObjects[i]->m_position).norm();
+            direction = systems[2].physicalObjects[i]->m_position;
+        }
+		std::cout << "test : " << d << " i " << i << std::endl;
 	}
+    systems[1].physicalObjects[0]->m_force = direction *50;
+	systems[1].physicalObjects[0]->m_rotation = direction.normalize();
+
+
+    for (int i = 0; i < systems.size(); ++i) {
+        systems[i].applySprings();
+        systems[i].solve();
+        for(int j = 0; j<systems[i].physicalObjects.size(); ++j){
+            //systems[i].physicalObjects[j]->m_rotation += Vector3f(frand()/(M_PI*2), frand()/(M_PI*2), frand()/(M_PI*2));
+            _scene.setDrawnObjectModel(systems[i].physicalObjects[j]->m_ObjectInstanceId, translation(systems[i].physicalObjects[j]->m_position) * xRotation(systems[i].physicalObjects[j]->m_rotation.x * M_PI) * yRotation(systems[i].physicalObjects[j]->m_rotation.y * M_PI) * zRotation(systems[i].physicalObjects[j]->m_rotation.z * M_PI) ); 
+    	}
+    }
 }
 
 void GalaxyApp::renderFrame() {
@@ -228,19 +253,63 @@ void GalaxyApp::setSystem(){
 
     Object &sphereObject = _scene.createObject(GL_TRIANGLES);
     MeshBuilder sphereBuilder = MeshBuilder();
-    buildCube(sphereObject, 0.02, sphereBuilder);
+    buildCube(sphereObject, 0.05, sphereBuilder);
 
-    for(int i=0 ; i<50; ++i) {
-		std::cout << i << std::endl;
-        GLuint sphere =_scene.addObjectToDraw(sphereObject.id);
-        _scene.setDrawnObjectColor(sphere, Color(cos(i * 50.),  sin(i * 50.),  sin(i * 50.)));
-        _scene.setDrawnObjectShaderID(sphere, shaders[COLOR]);
-        //_scene.setDrawnObjectMaterialID(sphere, JADE);
-        GLuint spherePhy1 = physicManager.addPhysicToObject(sphere);
-        //physicManager.setPhysicObjectMass(spherePhy1, 1.);
-        physicManager.setPhysicObjectPosition(spherePhy1, Vector3f(cos(i * 50.), sin(i * 50.), (sin(i * 50.) + cos(i * 50.))/2));
+    GLuint s = createSystem();
+    for(int i = 0 ; i<10; ++i) {
+        GLuint instance =_scene.addObjectToDraw(sphereObject.id);
+        _scene.setDrawnObjectColor(instance, Color(cos(i * 50.),  sin(i * 50.),  sin(i * 50.)));
+        _scene.setDrawnObjectShaderID(instance, shaders[MATERIAL]);
+        _scene.setDrawnObjectMaterialID(instance, JADE);
+        GLuint particle = systems[s].addPhysicToObject(instance);
+        systems[s].setPhysicObjectPosition(particle, Vector3f((0.5 - frand())/2., (0.5 - frand())/2., (0.5 - frand())/2.));//(i/5., 0., 0.));
 	}
-    
-    //_scene.setDrawnObjectModel(sphere, translation(Vector3f(size/2, 0., 0.)) * yRotation(-3.14/2) * zRotation(3.14));
-    // Ground_Dirt_02_COLOR
+
+    systems[s].setHookSpring(10, 1);   
+    systems[s].setCineticBrake(0.00001);
 }
+
+void GalaxyApp::setPills(){
+
+    Object &sphereObject = _scene.createObject(GL_TRIANGLES);
+    MeshBuilder sphereBuilder = MeshBuilder();
+    buildCube(sphereObject, 0.1, sphereBuilder);
+
+    GLuint s = createSystem();
+    for(int i = 0 ; i<10; ++i) {
+        GLuint instance =_scene.addObjectToDraw(sphereObject.id);
+        _scene.setDrawnObjectColor(instance, Color(cos(i * 50.),  sin(i * 50.),  sin(i * 50.)));
+        _scene.setDrawnObjectShaderID(instance, shaders[MATERIAL]);
+        _scene.setDrawnObjectMaterialID(instance, JADE);
+        GLuint particle = systems[s].addPhysicToObject(instance);
+        systems[s].setPhysicObjectPosition(particle, Vector3f((0.5 - frand())*10., (0.5 - frand())*10., (0.5 - frand())*10.));//(i/5., 0., 0.));
+    }
+}
+
+void GalaxyApp::setDragon(){
+
+    Object &sphereObject = _scene.createObject(GL_TRIANGLES);
+    MeshBuilder sphereBuilder = MeshBuilder();
+    buildCube(sphereObject, 0.05, sphereBuilder);
+
+    GLuint s = createSystem();
+    for(int i = 0 ; i<5; ++i) {
+        GLuint instance =_scene.addObjectToDraw(sphereObject.id);
+        _scene.setDrawnObjectColor(instance, Color(cos(i * 50.),  sin(i * 50.),  sin(i * 50.)));
+        _scene.setDrawnObjectShaderID(instance, shaders[MATERIAL]);
+        _scene.setDrawnObjectMaterialID(instance, JADE);
+        GLuint particle = systems[s].addPhysicToObject(instance);
+        systems[s].setPhysicObjectPosition(particle, Vector3f(-1 - i, 0., 0.));
+    }
+
+    systems[s].setAttraction(0.5);
+}
+
+GLuint GalaxyApp::createSystem() {
+    const size_t size = systems.size();
+    if (size >= 20)
+        throw std::runtime_error("maximum number of system reached");
+    systems.push_back(PhysicManager());
+    return size;
+}
+

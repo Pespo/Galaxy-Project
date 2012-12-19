@@ -8,6 +8,7 @@ uniform mat4 projection;
 uniform vec4 color;
 
 uniform sampler2D textureUnitDiffuse;
+uniform sampler2D textureUnitSpecular;
 
 uniform vec3  LightPosition;
 //uniform vec3  LightColor;
@@ -92,10 +93,10 @@ vec3 spotLight(in vec3 lcolor, in float intensity, in vec3 ldir, in vec3 lpos, i
 void main(void)
 {
 	vec3 diffuse = texture(textureUnitDiffuse, uv).rgb;
-	float spec = 0.;
+	float spec = texture(textureUnitSpecular, uv).r;
 	vec3 n = normalize(normal);
 
-	vec3 cpointlight1 = pointLight(vec3(1.0, 1.0, 0.0), 20.0, vec3(0.0, 0.0, 0.0), n, position, diffuse, spec, cameraPosition);
+	vec3 cpointlight1 = pointLight(vec3(1.0, 1.0, 1.0), 20.0, vec3(0.0, 0.0, 0.0), n, position, diffuse, spec, cameraPosition);
 	//vec3 cpointlight2 = pointLight(vec3(1.0, 0.0, 0.0), 1.0, vec3(10.0, 1.0, 10.0), n, position, diffuse, spec, cameraPosition);
 	//vec3 cdirlight1 = directionalLight(vec3(1.0, 0.0, 0.0), 10.0, vec3(0.0, -1.0, 0.0), n, position, diffuse, spec, cameraPosition);
 	//vec3 cspotlight1 = spotLight(vec3(1.0, 1.0, 0.0), 1., vec3(0., -1., 0.), vec3( 0., 5.5, 0.), n, position, diffuse, spec, cameraPosition );

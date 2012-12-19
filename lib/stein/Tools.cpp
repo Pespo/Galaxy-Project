@@ -113,9 +113,9 @@ void printGlErrors() {
 }
 
 // Loads a simple texture
-GLuint loadTexture(const char* fileName) {
+GLuint loadTexture(const char* fileName, bool texture0) {
    
-   	glActiveTexture(GL_TEXTURE0);
+   	texture0 ? glActiveTexture(GL_TEXTURE0) : glActiveTexture(GL_TEXTURE1);
 
     // Allocates a texture id
     GLuint textureID = 0;
@@ -236,14 +236,6 @@ void setMatricesInShader(GLuint shaderID, const Matrix4f &model, const Matrix4f 
     glUniformMatrix4fv(glGetUniformLocation(shaderID, "view"), 1, toTranspose, (const float*) view);
     glUniform3fv(glGetUniformLocation(shaderID, "cameraPosition"), 1, (const float*) cameraPosition);
     glUniformMatrix4fv(glGetUniformLocation(shaderID, "projection"), 1, toTranspose, (const float*) projection);
-}
-
-// Passing the light to the shader
-void setLightInShader(GLuint shaderID, Light* light) {
-    // Passing the light to the shader
-    glUniform4fv(glGetUniformLocation(shaderID, "light.position"), 1, light->position);
-    std::cout << "l : " << light->position[0] << std::endl;
-    glUniform1f(glGetUniformLocation(shaderID, "light.power"), light->power);
 }
 
 // Passing the material to the shader

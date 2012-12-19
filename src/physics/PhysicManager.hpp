@@ -13,6 +13,7 @@
 class PhysicManager {
 public:
     PhysicManager();
+    PhysicManager(float step);
     ~PhysicManager();
 
     GLuint addPhysicToObject(GLuint indexStoredObject);
@@ -23,6 +24,11 @@ public:
     void setPhysicObjectForce(GLuint indexPhysicalObject, const Vector3f force);
     void setPhysicObjectRotation(GLuint indexPhysicalObject, const Vector3f rotation);
 
+    void setHookSpring(float k, float freeLength);
+    void setAttraction(float force);
+    void setCineticBrake(float z);
+
+    //void setStep(float step);
     void setDefaultPosition(const Vector3f pos);
     void setDefaultMass(const float mass);
     void setDefaultVelocity(const Vector3f velocity);
@@ -35,12 +41,17 @@ public:
     const static size_t maxPhysicalObjects = 500; // An initial limit of drawable objects
     std::vector<Particle*> physicalObjects;
 
+    bool bHookSpring;
+    bool bAttraction;
+    bool bCineticBrake;
+
     HookSpring hookSpring;
     Attraction attraction;
     CineticBrake cineticBrake;
     LeapfrogSolver solver; // Calculates objects movements
 
 private:
+    float step;
     float defaultMass;
     Vector3f defaultPosition;
     Vector3f defaultVelocity;

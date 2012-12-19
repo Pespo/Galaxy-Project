@@ -7,6 +7,7 @@ using namespace stein;
 
 class LeapfrogSolver {
 public:
+	LeapfrogSolver();
     LeapfrogSolver(float step);
     ~LeapfrogSolver();
 

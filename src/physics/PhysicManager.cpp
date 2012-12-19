@@ -3,7 +3,15 @@
 #include "Physics/LeapfrogSolver.hpp"
 #include <stein/Scene.hpp>
 
-PhysicManager::PhysicManager() : defaultPosition(0.0, 0.0, 0.0), defaultMass(1.0), defaultVelocity(0.0, 0.0, 0.0), defaultForce(0.0, 0.0, 0.0), defaultRotation(0.0, 0.0, 0.0), solver(0.02) {};
+PhysicManager::PhysicManager() :
+    defaultPosition(0.0, 0.0, 0.0), defaultMass(1.0), defaultVelocity(0.0, 0.0, 0.0), defaultForce(0.0, 0.0, 0.0), defaultRotation(0.0, 0.0, 0.0),
+    bHookSpring(false), bAttraction(false), bCineticBrake(false),  
+    hookSpring(), attraction(), cineticBrake(), solver(0.002) {}
+
+PhysicManager::PhysicManager(float step = 0.002) :
+    defaultPosition(0.0, 0.0, 0.0), defaultMass(1.0), defaultVelocity(0.0, 0.0, 0.0), defaultForce(0.0, 0.0, 0.0), defaultRotation(0.0, 0.0, 0.0),
+    bHookSpring(false), bAttraction(false), bCineticBrake(false),  
+    hookSpring(), attraction(), cineticBrake(), solver(step) {}
 
 PhysicManager::~PhysicManager() {}
 
@@ -71,17 +79,36 @@ void PhysicManager::setDefaultRotation(const Vector3f rotation){
         physicalObjects[i]->m_force = defaultForce;
 }
 
+void PhysicManager::setHookSpring(float k = 10, float freeLength = 1){
+    bHookSpring = true;
+    hookSpring.m_k = k;
+    hookSpring.m_freeLength = freeLength;
+}
+
+void PhysicManager::setAttraction(float force = 10) {
+    bAttraction = true;
+    attraction.m_force = force;
+}
+
+void PhysicManager::setCineticBrake(float z = 0.0001) {
+    bCineticBrake = true;
+    cineticBrake.m_step = step;
+    cineticBrake.m_z = z;
+}
+
 void PhysicManager::solve(){
 	for (size_t i = 0; i < physicalObjects.size(); ++i)
 	        solver.solve(physicalObjects[i]);
 }
 
 void PhysicManager::applySprings(){
-	for(int i=1; i < physicalObjects.size(); ++i) {
-        attraction.generateForces(physicalObjects[i], physicalObjects[i-1]);
-        for(int j=i+1; j < physicalObjects.size(); ++j){
-            hookSpring.generateForces(physicalObjects[i], physicalObjects[j]);
-            cineticBrake.generateForces(physicalObjects[i], physicalObjects[j]);
+    for(int i = bAttraction ? 1 : 0 ; i < physicalObjects.size(); ++i) {
+            if(bAttraction) attraction.generateForces(physicalObjects[i], physicalObjects[i-1]);
+            if(bHookSpring || bCineticBrake) {
+                for(int j=i+1; j < physicalObjects.size(); ++j){
+                    if(bHookSpring) hookSpring.generateForces(physicalObjects[i], physicalObjects[j]);
+                    if(bCineticBrake) cineticBrake.generateForces(physicalObjects[i], physicalObjects[j]);
+            }
 		}
     }
 }
