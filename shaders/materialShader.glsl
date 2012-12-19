@@ -66,15 +66,21 @@ out vec4 fragColor;
 Material setMaterial() {
     if(material == uint(0))
         return Material(vec4(0.135, 0.2225, 0.1575, 1.0), vec4(0.54, 0.89, 0.63, 1.0), vec4(0.316228, 0.316228, 0.316228, 1.0), 0.01, 1.0, 2.0, 0.1);
+    else if(material == uint(1))
+        return Material(vec4(0.3, 0.3, 0.3, 1.0), vec4(0.4, 0.4, 0.4, 1.0), vec4(0., 0., 0., 1.0), 0.01, 1.0, 2.0, 0.6);
+    else if(material == uint(2))
+        return Material(vec4(0.8, 0.01175, 0.01175, 1.0), vec4(0.8, 0.01, 0.01, 1.0), vec4(1.0, 0.1, 0.1, 1.0), 0.8, 1.0, 2.0, 1.0);
+    else if(material == uint(3))
+        return Material(vec4(0.05, 0.2, 0.9, 1.0), vec4(0.1, 0.1, 0.9, 1.0), vec4(0.1, 0.1, 0.9, 1.0), 0.8, 1.0, 2.0, 1.2);
     else
-        return Material(vec4(0.3, 0.3, 0.3, 1.0), vec4(0.4, 0.4, 0.4, 1.0), vec4(0.774597, 0.774597, 0.774597, 1.0), 0.01, 1.0, 2.0, 0.6);
+        return Material(vec4(0.8, 0.8, 0.1, 1.0), vec4(0.8, 0.8, 0.01, 1.0), vec4(0.8, 0.8, 0.1, 1.0), 0.8, 1.0, 2.0, 1.2);
 }
 
 void main()
 {   
     Material mat = setMaterial();
     vec4 lposition = vec4 (0., 0., 0., 1.);
-    float lpower = 2.;
+    float lpower = 0.5;
     vec4 diffuseColorMix=vec4(mat.diffuse);
     // If color
     if (filledData[3]) diffuseColorMix=mix(localColor, mat.diffuse, 0.3);

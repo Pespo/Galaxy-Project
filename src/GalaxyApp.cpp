@@ -31,7 +31,7 @@ enum shaderType {
 };
 
 enum materialType {
-    JADE, CHROME
+    JADE, CHROME, RUBY, EMERAULD, GOLD
 };
 
 GalaxyApp::GalaxyApp() : Application(WIDTH, HEIGHT) {
@@ -180,8 +180,9 @@ void GalaxyApp::mouseMotionEvent() {
     _exMouseYPos = _mouseYPos;
     glfwGetMousePos(&_mouseXPos, &_mouseYPos);
 
-    // Mouse Camera Movement
-    ((MoveableCamera*)_scene.pCamera)->setMouseMovement(_mouseXPos - _exMouseXPos, _mouseYPos - _exMouseYPos);
+    if(!_bShowMouse)
+        // Mouse Camera Movement
+        ((MoveableCamera*)_scene.pCamera)->setMouseMovement(_mouseXPos - _exMouseXPos, _mouseYPos - _exMouseYPos);
 }
 
 void GalaxyApp::mouseButtonEvent() {
@@ -246,7 +247,7 @@ void GalaxyApp::buildWoman(float size) {
     _scene.setDrawnObjectShaderID(woman, shaders[MATERIAL]);
     _scene.setDrawnObjectColor(woman, Color(1., 1., 0.));
     _scene.setDrawnObjectModel(woman, translation(Vector3f( -3.2 , -7.7, -2.5)) * yRotation(-M_PI/8) * scale(Vector3f( size , size, size)));
-    _scene.setDrawnObjectMaterialID(woman, JADE);
+    _scene.setDrawnObjectMaterialID(woman, GOLD);
 }
 
 void GalaxyApp::buildStone(float size) {

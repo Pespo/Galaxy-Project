@@ -22,10 +22,11 @@ public:
     std::vector<PhysicManager> systems;
 
     GLuint shaders[3];
+    //SoundFileRead soundfile;
+
     MoveableCamera* initCamera(const float size, Vector3f position);
 	void initPhysics();
     void loadShaders();
-    void loadTextures();
     void initGUI();
     void drawGUI();
 
