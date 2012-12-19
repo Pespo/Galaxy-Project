@@ -32,6 +32,7 @@ public:
 	void mouseButtonEvent();
     void keyEvent();
     void buildSkybox(size_t size);
-    void buildWoman(size_t size);
+    void buildWoman(float size);
+    void buildStone(float size);
     void setSystem();
 };
