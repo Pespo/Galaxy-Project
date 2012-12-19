@@ -49,7 +49,8 @@ GalaxyApp::GalaxyApp() : Application(WIDTH, HEIGHT) {
     loadShaders();
     // Builds
     buildSkybox(100);
-    buildWoman(10);
+    buildWoman(5.);
+    buildStone(6.);
 
     setSystem();
     
@@ -144,7 +145,6 @@ void GalaxyApp::animate() {
             d = (systems[1].physicalObjects[0]->m_position - systems[2].physicalObjects[i]->m_position).norm();
             direction = systems[2].physicalObjects[i]->m_position;
         }
-		std::cout << "test : " << d << " i " << i << std::endl;
 	}
     systems[1].physicalObjects[0]->m_force = direction *50;
 	systems[1].physicalObjects[0]->m_rotation = direction.normalize();
@@ -236,7 +236,7 @@ void GalaxyApp::buildSkybox(size_t size) {
 }
 
 // Builds the woman
-void GalaxyApp::buildWoman(size_t size) {
+void GalaxyApp::buildWoman(float size) {
     Object &womanObject = _scene.createObject(GL_TRIANGLES);
 
     MeshBuilder womanBuilder = MeshBuilder();
@@ -245,8 +245,21 @@ void GalaxyApp::buildWoman(size_t size) {
     GLuint woman =_scene.addObjectToDraw(womanObject.id);
     _scene.setDrawnObjectShaderID(woman, shaders[MATERIAL]);
     _scene.setDrawnObjectColor(woman, Color(1., 1., 0.));
-    _scene.setDrawnObjectModel(woman, translation(Vector3f( -3.5 , -9., -3)) * yRotation(-M_PI/8) * scale(Vector3f( 5. , 5., 5.)));
+    _scene.setDrawnObjectModel(woman, translation(Vector3f( -3.2 , -7.7, -2.5)) * yRotation(-M_PI/8) * scale(Vector3f( size , size, size)));
     _scene.setDrawnObjectMaterialID(woman, JADE);
+}
+
+void GalaxyApp::buildStone(float size) {
+    Object &stoneObject = _scene.createObject(GL_TRIANGLES);
+
+    MeshBuilder stoneBuilder = MeshBuilder();
+    buildObjectGeometryFromOBJ(stoneObject, "res/objs/stone.obj", false, false, stoneBuilder);
+
+    GLuint stone =_scene.addObjectToDraw(stoneObject.id);
+    _scene.setDrawnObjectShaderID(stone, shaders[MATERIAL]);
+    _scene.setDrawnObjectColor(stone, Color(1., 1., 0.));
+    _scene.setDrawnObjectModel(stone, translation(Vector3f( -2.9 , -7.1, -2.5)) * yRotation(-M_PI/8) * scale(Vector3f( size , size, size)));
+    _scene.setDrawnObjectMaterialID(stone, CHROME);
 }
 
 void GalaxyApp::setSystem(){
@@ -312,4 +325,3 @@ GLuint GalaxyApp::createSystem() {
     systems.push_back(PhysicManager());
     return size;
 }
-
