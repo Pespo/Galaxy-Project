@@ -146,16 +146,74 @@ void GalaxyApp::animate() {
             direction = systems[2].physicalObjects[i]->m_position;
         }
 	}
-    systems[1].physicalObjects[0]->m_force = direction *50;
-	systems[1].physicalObjects[0]->m_rotation = direction.normalize();
 
+    systems[1].physicalObjects[0]->m_force = direction * 50;
 
+    Vector3f zero(1., 0., 0.);
+    float rotY = 0;
+	//float rotX = 0;
+    Vector3f velocity = zero;
     for (int i = 0; i < systems.size(); ++i) {
         systems[i].applySprings();
         systems[i].solve();
-        for(int j = 0; j<systems[i].physicalObjects.size(); ++j){
-            //systems[i].physicalObjects[j]->m_rotation += Vector3f(frand()/(M_PI*2), frand()/(M_PI*2), frand()/(M_PI*2));
-            _scene.setDrawnObjectModel(systems[i].physicalObjects[j]->m_ObjectInstanceId, translation(systems[i].physicalObjects[j]->m_position) * xRotation(systems[i].physicalObjects[j]->m_rotation.x * M_PI) * yRotation(systems[i].physicalObjects[j]->m_rotation.y * M_PI) * zRotation(systems[i].physicalObjects[j]->m_rotation.z * M_PI) ); 
+
+            // zero = Vector3f(0., 1., 0.);
+            // velocity = Vector3f(systems[i].physicalObjects[0]->m_velocity.x, systems[i].physicalObjects[0]->m_velocity.y , systems[i].physicalObjects[0]->m_velocity.z);
+            // velocity = velocity.normalize();
+            // if(velocity.norm() ) {
+            //     rotY = zero.dotP(velocity) / (velocity.norm() * zero.norm())  ;
+            //     rotY = acos(rotY);
+            // } else systems[i].physicalObjects[0]->m_rotation.y = 0;
+
+            // Matrix4f rotate = Matrix4f(zero.x*zero.x + (1 - zero.x*zero.x) * cos(rotY), zero.x*zero.y * (1 - cos(rotY)) - zero.z * sin(rotY), zero.x*zero.z * (1 - cos(rotY))+zero.y * sin(rotY), 0,
+            //                            zero.x*zero.y * (1 - cos(rotY)) + zero.z * sin(rotY), zero.y*zero.y + (1 - zero.y*zero.y) * cos(rotY), zero.y*zero.z * (1 - cos(rotY))-zero.x * sin(rotY), 0, 
+            //                            zero.x*zero.z * (1 - cos(rotY)) - zero.y * sin(rotY), zero.y*zero.z * (1 - cos(rotY)) + zero.x * sin(rotY), zero.z*zero.z + (1 - zero.z*zero.z) * cos(rotY), 0,
+            //                            0, 0, 0, 1);
+
+            for(int j = 0; j<systems[i].physicalObjects.size(); ++j){
+
+
+            
+
+
+
+            //Rotation en Y
+            zero = Vector3f(1., 0., 0.);
+            velocity = Vector3f(systems[i].physicalObjects[j]->m_velocity.x, systems[i].physicalObjects[j]->m_velocity.y , systems[i].physicalObjects[j]->m_velocity.z);
+            //velocity = velocity.normalize();
+            if(velocity.norm() ) {
+                rotY = zero.dotP(velocity) / velocity.norm() ;
+                rotY = (rotY<0) ? - acos(rotY) : acos(rotY);
+                if(rotY < (systems[i].physicalObjects[j]->m_rotation.y - 0.1))
+                    systems[i].physicalObjects[j]->m_rotation.y -= 0.1;
+                else if(rotY > (systems[i].physicalObjects[j]->m_rotation.y + 0.1))
+					systems[i].physicalObjects[j]->m_rotation.y += 0.1;
+                else systems[i].physicalObjects[j]->m_rotation.y = rotY; 
+            } else systems[i].physicalObjects[j]->m_rotation.y = 0;
+
+            //Rotation X
+            //zero = Vector3f(1., 0., 0.);
+            // velocity = Vector3f(systems[i].physicalObjects[j]->m_velocity.x, systems[i].physicalObjects[j]->m_velocity.y, /*systems[i].physicalObjects[j]->m_velocity.z)*/0. );
+            // //velocity = velocity.normalize();
+            // if(velocity.norm() ) {
+            //     rotX = zero.dotP(velocity) / velocity.norm() ;
+            //     if(rotX > M_PI/2) {
+            //         rotX = acos(M_PI/2);  
+            //     } else if(rotX < -M_PI/2) {
+            //         rotX = - acos(M_PI/2);
+            //     } else {
+            //         rotX = (rotX < 0 ) ? - acos(rotX) : acos(rotX);
+            //     }
+                
+            //     if(rotX < (systems[i].physicalObjects[j]->m_rotation.x - 0.1))
+            //         systems[i].physicalObjects[j]->m_rotation.x -= 0.1;
+            //     else if(rotY > (systems[i].physicalObjects[j]->m_rotation.x + 0.1))
+            //         systems[i].physicalObjects[j]->m_rotation.x += 0.1;
+            //     else systems[i].physicalObjects[j]->m_rotation.x = rotX; 
+            // } else systems[i].physicalObjects[j]->m_rotation.x = 0;
+
+
+             _scene.setDrawnObjectModel(systems[i].physicalObjects[j]->m_ObjectInstanceId, translation(systems[i].physicalObjects[j]->m_position) * yRotation(systems[i].physicalObjects[j]->m_rotation.y)); 
     	}
     }
 }
@@ -301,17 +359,28 @@ void GalaxyApp::setPills(){
 
 void GalaxyApp::setDragon(){
 
+    GLuint s = createSystem();
+
+    Object &dragonObject = _scene.createObject(GL_TRIANGLES);
+    MeshBuilder dragonBuilder = MeshBuilder();
+    buildObjectGeometryFromOBJ(dragonObject, "res/objs/dragonHead.obj", false, false, dragonBuilder);
+
+    GLuint instance =_scene.addObjectToDraw(dragonObject.id);
+    _scene.setDrawnObjectShaderID(instance, shaders[MATERIAL]);
+    _scene.setDrawnObjectMaterialID(instance, JADE);
+    GLuint particle = systems[s].addPhysicToObject(instance);
+    systems[s].setPhysicObjectPosition(particle, Vector3f(-1., 0., 0.));
+
     Object &sphereObject = _scene.createObject(GL_TRIANGLES);
     MeshBuilder sphereBuilder = MeshBuilder();
     buildCube(sphereObject, 0.05, sphereBuilder);
 
-    GLuint s = createSystem();
     for(int i = 0 ; i<5; ++i) {
-        GLuint instance =_scene.addObjectToDraw(sphereObject.id);
+        instance =_scene.addObjectToDraw(sphereObject.id);
         _scene.setDrawnObjectColor(instance, Color(cos(i * 50.),  sin(i * 50.),  sin(i * 50.)));
         _scene.setDrawnObjectShaderID(instance, shaders[MATERIAL]);
         _scene.setDrawnObjectMaterialID(instance, JADE);
-        GLuint particle = systems[s].addPhysicToObject(instance);
+        particle = systems[s].addPhysicToObject(instance);
         systems[s].setPhysicObjectPosition(particle, Vector3f(-1 - i, 0., 0.));
     }
 
