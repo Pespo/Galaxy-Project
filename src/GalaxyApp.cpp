@@ -305,7 +305,7 @@ void GalaxyApp::buildWoman(float size) {
     _scene.setDrawnObjectShaderID(woman, shaders[MATERIAL]);
     _scene.setDrawnObjectColor(woman, Color(1., 1., 0.));
     _scene.setDrawnObjectModel(woman, translation(Vector3f( -3.2 , -7.7, -2.5)) * yRotation(-M_PI/8) * scale(Vector3f( size , size, size)));
-    _scene.setDrawnObjectMaterialID(woman, GOLD);
+    _scene.setDrawnObjectMaterialID(woman, JADE);
 }
 
 void GalaxyApp::buildStone(float size) {
@@ -328,7 +328,7 @@ void GalaxyApp::setSystem(){
     buildCube(sphereObject, 0.05, sphereBuilder);
 
     GLuint s = createSystem();
-    for(int i = 0 ; i<10; ++i) {
+    for(int i = 0 ; i<60; ++i) {
         GLuint instance =_scene.addObjectToDraw(sphereObject.id);
         _scene.setDrawnObjectColor(instance, Color(cos(i * 50.),  sin(i * 50.),  sin(i * 50.)));
         _scene.setDrawnObjectShaderID(instance, shaders[MATERIAL]);
@@ -337,8 +337,8 @@ void GalaxyApp::setSystem(){
         systems[s].setPhysicObjectPosition(particle, Vector3f((0.5 - frand())/2., (0.5 - frand())/2., (0.5 - frand())/2.));//(i/5., 0., 0.));
 	}
 
-    systems[s].setHookSpring(10, 1);   
-    systems[s].setCineticBrake(0.00001);
+    systems[s].setHookSpring(40, 1);   
+    systems[s].setCineticBrake(0.000001);
 }
 
 void GalaxyApp::setPills(){
@@ -368,7 +368,7 @@ void GalaxyApp::setDragon(){
 
     GLuint instance =_scene.addObjectToDraw(dragonObject.id);
     _scene.setDrawnObjectShaderID(instance, shaders[MATERIAL]);
-    _scene.setDrawnObjectMaterialID(instance, JADE);
+    _scene.setDrawnObjectMaterialID(instance, GOLD);
     GLuint particle = systems[s].addPhysicToObject(instance);
     systems[s].setPhysicObjectPosition(particle, Vector3f(-1., 0., 0.));
 
