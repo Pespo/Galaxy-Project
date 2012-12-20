@@ -3,7 +3,7 @@
 
 using namespace stein;
 
-CineticBrake::CineticBrake() : m_step(0.02),  m_z(0.00001) {}
+CineticBrake::CineticBrake() : m_step(0.002),  m_z(0.00001) {}
 
 CineticBrake::CineticBrake(float dt, float z = 0.00001) : m_step(dt),  m_z(z) {}
 

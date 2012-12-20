@@ -103,12 +103,16 @@ void PhysicManager::solve(){
 
 void PhysicManager::applySprings(){
     for(int i = bAttraction ? 1 : 0 ; i < physicalObjects.size(); ++i) {
-            if(bAttraction) attraction.generateForces(physicalObjects[i], physicalObjects[i-1]);
-            if(bHookSpring || bCineticBrake) {
-                for(int j=i+1; j < physicalObjects.size(); ++j){
-                    if(bHookSpring) hookSpring.generateForces(physicalObjects[i], physicalObjects[j]);
-                    if(bCineticBrake) cineticBrake.generateForces(physicalObjects[i], physicalObjects[j]);
+        if(bAttraction) 
+            attraction.generateForces(physicalObjects[i], physicalObjects[i-1]);
+        if(bHookSpring || bCineticBrake) {
+            for(int j=i+1; j < physicalObjects.size(); ++j){
+                if(bHookSpring) 
+                    hookSpring.generateForces(physicalObjects[i], physicalObjects[j]);
+                if(bCineticBrake) {
+                    cineticBrake.generateForces(physicalObjects[i], physicalObjects[j]);
+                }
             }
-		}
+        }
     }
 }

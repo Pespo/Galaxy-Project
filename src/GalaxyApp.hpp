@@ -21,6 +21,7 @@ public:
 
     std::vector<PhysicManager> systems;
 
+    float forceDragon;
     GLuint shaders[3];
     //SoundFileRead soundfile;
 
@@ -40,6 +41,7 @@ public:
     void buildWoman(float size);
     void buildStone(float size);
     void setSystem();
+    void setSystem2();
     void setDragon();
     void setPills();
 };
