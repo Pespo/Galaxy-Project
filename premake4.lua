@@ -8,7 +8,7 @@ solution "Galaxy project"
       language "C++"
       files { "src/*.hpp", "src/*.cpp", "src/*.h", "src/physics/*.hpp", "src/physics/*.cpp", "src/gui/*.hpp", "src/gui/*.h", "src/gui/*.cpp" }
       includedirs { "lib/glfw/include", "src", "lib/" }
-      links { "glew", "glfw", "stein"}
+      links { "glew", "glfw", "stein" }
       defines { "GLEW_STATIC" }
      
       configuration { "linux" }
@@ -106,4 +106,3 @@ solution "Galaxy project"
          defines { "NDEBUG" }
          flags { "Optimize" }    
          targetdir "bin/release"
-		 
