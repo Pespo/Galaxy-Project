@@ -83,6 +83,48 @@ struct Matrix4f {
         std::swap((*this)(2, 3), (*this)(3, 2));
     }
 
+    void inverse(Matrix4f& inv) const {
+        inv.setZero();
+        float det;
+        inv.m_Data[0] =   m_Data[5]*m_Data[10]*m_Data[15] - m_Data[5]*m_Data[11]*m_Data[14] - m_Data[9]*m_Data[6]*m_Data[15]
+            + m_Data[9]*m_Data[7]*m_Data[14] + m_Data[13]*m_Data[6]*m_Data[11] - m_Data[13]*m_Data[7]*m_Data[10];
+        inv.m_Data[1] =  -m_Data[4]*m_Data[10]*m_Data[15] + m_Data[4]*m_Data[11]*m_Data[14] + m_Data[8]*m_Data[6]*m_Data[15]
+            - m_Data[8]*m_Data[7]*m_Data[14] - m_Data[12]*m_Data[6]*m_Data[11] + m_Data[12]*m_Data[7]*m_Data[10];
+        inv.m_Data[2] =   m_Data[4]*m_Data[9]*m_Data[15] - m_Data[4]*m_Data[11]*m_Data[13] - m_Data[8]*m_Data[5]*m_Data[15]
+            + m_Data[8]*m_Data[7]*m_Data[13] + m_Data[12]*m_Data[5]*m_Data[11] - m_Data[12]*m_Data[7]*m_Data[9];
+        inv.m_Data[3] = -m_Data[4]*m_Data[9]*m_Data[14] + m_Data[4]*m_Data[10]*m_Data[13] + m_Data[8]*m_Data[5]*m_Data[14]
+            - m_Data[8]*m_Data[6]*m_Data[13] - m_Data[12]*m_Data[5]*m_Data[10] + m_Data[12]*m_Data[6]*m_Data[9];
+        inv.m_Data[4] =  -m_Data[1]*m_Data[10]*m_Data[15] + m_Data[1]*m_Data[11]*m_Data[14] + m_Data[9]*m_Data[2]*m_Data[15]
+            - m_Data[9]*m_Data[3]*m_Data[14] - m_Data[13]*m_Data[2]*m_Data[11] + m_Data[13]*m_Data[3]*m_Data[10];
+        inv.m_Data[5] =   m_Data[0]*m_Data[10]*m_Data[15] - m_Data[0]*m_Data[11]*m_Data[14] - m_Data[8]*m_Data[2]*m_Data[15]
+            + m_Data[8]*m_Data[3]*m_Data[14] + m_Data[12]*m_Data[2]*m_Data[11] - m_Data[12]*m_Data[3]*m_Data[10];
+        inv.m_Data[6] =  -m_Data[0]*m_Data[9]*m_Data[15] + m_Data[0]*m_Data[11]*m_Data[13] + m_Data[8]*m_Data[1]*m_Data[15]
+            - m_Data[8]*m_Data[3]*m_Data[13] - m_Data[12]*m_Data[1]*m_Data[11] + m_Data[12]*m_Data[3]*m_Data[9];
+        inv.m_Data[7] =   m_Data[0]*m_Data[9]*m_Data[14] - m_Data[0]*m_Data[10]*m_Data[13] - m_Data[8]*m_Data[1]*m_Data[14]
+            + m_Data[8]*m_Data[2]*m_Data[13] + m_Data[12]*m_Data[1]*m_Data[10] - m_Data[12]*m_Data[2]*m_Data[9];
+        inv.m_Data[8] =   m_Data[1]*m_Data[6]*m_Data[15] - m_Data[1]*m_Data[7]*m_Data[14] - m_Data[5]*m_Data[2]*m_Data[15]
+            + m_Data[5]*m_Data[3]*m_Data[14] + m_Data[13]*m_Data[2]*m_Data[7] - m_Data[13]*m_Data[3]*m_Data[6];
+        inv.m_Data[9] =  -m_Data[0]*m_Data[6]*m_Data[15] + m_Data[0]*m_Data[7]*m_Data[14] + m_Data[4]*m_Data[2]*m_Data[15]
+            - m_Data[4]*m_Data[3]*m_Data[14] - m_Data[12]*m_Data[2]*m_Data[7] + m_Data[12]*m_Data[3]*m_Data[6];
+        inv.m_Data[10] =  m_Data[0]*m_Data[5]*m_Data[15] - m_Data[0]*m_Data[7]*m_Data[13] - m_Data[4]*m_Data[1]*m_Data[15]
+            + m_Data[4]*m_Data[3]*m_Data[13] + m_Data[12]*m_Data[1]*m_Data[7] - m_Data[12]*m_Data[3]*m_Data[5];
+        inv.m_Data[11] = -m_Data[0]*m_Data[5]*m_Data[14] + m_Data[0]*m_Data[6]*m_Data[13] + m_Data[4]*m_Data[1]*m_Data[14]
+            - m_Data[4]*m_Data[2]*m_Data[13] - m_Data[12]*m_Data[1]*m_Data[6] + m_Data[12]*m_Data[2]*m_Data[5];
+        inv.m_Data[12] =  -m_Data[1]*m_Data[6]*m_Data[11] + m_Data[1]*m_Data[7]*m_Data[10] + m_Data[5]*m_Data[2]*m_Data[11]
+            - m_Data[5]*m_Data[3]*m_Data[10] - m_Data[9]*m_Data[2]*m_Data[7] + m_Data[9]*m_Data[3]*m_Data[6];
+        inv.m_Data[13] =  m_Data[0]*m_Data[6]*m_Data[11] - m_Data[0]*m_Data[7]*m_Data[10] - m_Data[4]*m_Data[2]*m_Data[11]
+            + m_Data[4]*m_Data[3]*m_Data[10] + m_Data[8]*m_Data[2]*m_Data[7] - m_Data[8]*m_Data[3]*m_Data[6];
+        inv.m_Data[14] = -m_Data[0]*m_Data[5]*m_Data[11] + m_Data[0]*m_Data[7]*m_Data[9] + m_Data[4]*m_Data[1]*m_Data[11]
+            - m_Data[4]*m_Data[3]*m_Data[9] - m_Data[8]*m_Data[1]*m_Data[7] + m_Data[8]*m_Data[3]*m_Data[5];
+        inv.m_Data[15] =  m_Data[0]*m_Data[5]*m_Data[10] - m_Data[0]*m_Data[6]*m_Data[9] - m_Data[4]*m_Data[1]*m_Data[10]
+            + m_Data[4]*m_Data[2]*m_Data[9] + m_Data[8]*m_Data[1]*m_Data[6] - m_Data[8]*m_Data[2]*m_Data[5];
+
+        det = m_Data[0]*inv.m_Data[0] + m_Data[1]*inv.m_Data[4] + m_Data[2]*inv.m_Data[8] + m_Data[3]*inv.m_Data[12];
+        for (unsigned int i = 0; i < 16; ++i)
+            inv.m_Data[i] = inv.m_Data[i] / det;
+}
+
+
     operator const float*() const {
         return m_Data;
     }

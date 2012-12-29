@@ -3,6 +3,7 @@
 #include "MoveableCamera.hpp"
 #include "Physics/PhysicManager.hpp"
 #include <stein/Application.hpp>
+#include <stein/FramebufferGL.hpp>
 #include <stein/math/Vector3f.hpp>
 
 class GalaxyApp : public stein::Application {
@@ -21,13 +22,15 @@ public:
 
     std::vector<PhysicManager> systems;
 
+    FramebufferGL gbufferFB;
     float forceDragon;
-    GLuint shaders[3];
+    GLuint shaders[4];
     //SoundFileRead soundfile;
 
     MoveableCamera* initCamera(const float size, Vector3f position);
 	void initPhysics();
     void loadShaders();
+    void initFramebuffer();
     void initGUI();
     void drawGUI();
 

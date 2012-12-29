@@ -86,7 +86,8 @@ void main()
     if (filledData[3]) diffuseColorMix=mix(localColor, mat.diffuse, 0.3);
     
     // If no normal
-    if (!filledData[1]) fragColor = diffuseColorMix;
+    vec4 outColor;
+    if (!filledData[1]) outColor = diffuseColorMix; // fragColor = diffuseColorMix;
     else
     {
         vec4 L=normalize(lposition); // Direction of light from fragment -> light.position[3]==0.0 : Directional light

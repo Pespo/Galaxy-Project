@@ -1,7 +1,3 @@
-// Scene.cpp
-// Template for OpenGL 3.*
-// N. Dommanget dommange@univ-mlv.fr
-
 #include "Scene.hpp"
 #include "Tools.hpp"
 #include "Camera.hpp"
@@ -116,6 +112,7 @@ void Scene::setAppearance(const ObjectInstance &instance) {
 
     // We use the specific values of model per object
     setMatricesInShader(shaderId, instance.transformation, pCamera->getView(), pCamera->getPosition(), pCamera->getProjection());
+    
     glUniform4fv(glGetUniformLocation(instance.shaderId, "color"), 1, instance.color);
 
     if(instance.materialId != NA) {
