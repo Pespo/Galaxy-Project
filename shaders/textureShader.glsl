@@ -102,10 +102,10 @@ void main(void)
 	//vec3 cspotlight1 = spotLight(vec3(1.0, 1.0, 0.0), 1., vec3(0., -1., 0.), vec3( 0., 5.5, 0.), n, position, diffuse, spec, cameraPosition );
 
 	//fragColor = vec4(cpointlight1 + cpointlight2 + cdirlight1 + cspotlight1, 1.0);
-	//fragColor = vec4(cpointlight1, 1.0);
+	fragColor = vec4(cpointlight1, 1.0);
 	//fragColor = vec4(cpointlight1 + cpointlight2, 1.0);
 
-	fragColor = vec4(diffuse, 1.0);
+	//fragColor = vec4(diffuse, 1.0);
 	//fragColor = vec4(cdirlight1, 1.0);
 }
 

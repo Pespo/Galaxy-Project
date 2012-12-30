@@ -69,6 +69,17 @@ Matrix4f rotation(const float angle, const Vector3f &axis) {
         0, 0, 0, 1);
 }
 
+// Setup an orthographic projection
+Matrix4f orthoP(float left, float right, float bottom, float top, float nearVal, float farVal) {
+    float tx = -(right + left) / ( right - left);
+    float ty = -(top + bottom) / ( top - bottom);
+    float tz = -(farVal + nearVal) / ( farVal - nearVal);
+    return Matrix4f( 2.0f/(right-left),0.0f,0.0f,tx
+                    ,0.0f,2.0f/(top-bottom),0.0f,ty
+                    ,0.0f,0.0f, -2.0f/(farVal-nearVal), tz
+                    ,0.0f , 0.0f, 0.0f, 1.0f);
+}
+
 // Setup an orthographic projection in matA
 void ortho(float left, float right, float bottom, float top, float nearVal, float farVal, float * matA) {
     float tx = -(right + left) / ( right - left);

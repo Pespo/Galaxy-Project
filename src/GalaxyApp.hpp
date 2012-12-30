@@ -22,9 +22,14 @@ public:
 
     std::vector<PhysicManager> systems;
 
-    FramebufferGL gbufferFB;
+    FramebufferGL gbufferFB;    
+    FramebufferGL hblurFB;
+    FramebufferGL vblurFB;
+    FramebufferGL cocFB;
+
     float forceDragon;
-    GLuint shaders[4];
+    GLuint shaders[7];
+    GLuint finalScreen;
     //SoundFileRead soundfile;
 
     MoveableCamera* initCamera(const float size, Vector3f position);

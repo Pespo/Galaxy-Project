@@ -109,7 +109,6 @@ void Scene::setDefaultTextureID(GLuint textureUnit, GLuint textureID) {
 void Scene::setAppearance(const ObjectInstance &instance) {
     const size_t shaderId = instance.shaderId;
     glUseProgram(shaderId); // From now on, this shader will be used.
-
     // We use the specific values of model per object
     setMatricesInShader(shaderId, instance.transformation, pCamera->getView(), pCamera->getPosition(), pCamera->getProjection());
     
@@ -127,10 +126,13 @@ void Scene::setAppearance(const ObjectInstance &instance) {
 
     if(instance.textureId0 != NA) {
         //Selects our current texture for unit 0
+        glUniform1i(glGetUniformLocation(instance.shaderId, "textureUnitDiffuse"), 0);
+        
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, instance.textureId0);
         if(instance.textureId1 != NA) {
             //Selects our current texture for unit 1
+            glUniform1i(glGetUniformLocation(instance.shaderId, "textureUnitSpecular"), 1);
             glActiveTexture(GL_TEXTURE1);
             glBindTexture(GL_TEXTURE_2D, instance.textureId1);
         }
@@ -145,7 +147,7 @@ void Scene::setAppearance(const ObjectInstance &instance) {
 
 // Draw all Objects
 void Scene::drawObjectsOfScene() {
-    for (size_t i = 0; i < drawnObjects.size(); ++i) {
+    for (size_t i = 1; i < drawnObjects.size(); ++i) {
         const ObjectInstance &instance = drawnObjects[i];
         setAppearance(instance);
         storedObjects[instance.objectId]->drawObject();

@@ -28,7 +28,7 @@ using namespace std;
 using namespace stein;
 
 enum shaderType {
-    COLOR, TEXTURE, MATERIAL, EFFECT
+    COLOR, SKY, TEXTURE, MATERIAL, BLUR, COC, DOF
 };
 
 enum materialType {
@@ -43,6 +43,7 @@ GalaxyApp::GalaxyApp() : Application(WIDTH, HEIGHT) {
     
     initGUI();
 
+    //PlaySound("res/chimes.wav", NULL, SND_ASYNC|SND_FILENAME|SND_LOOP);
     _exMouseXPos = WIDTH/2;
     _exMouseYPos = HEIGHT/2;
     forceDragon = 50;
@@ -56,6 +57,12 @@ GalaxyApp::GalaxyApp() : Application(WIDTH, HEIGHT) {
 
     initFramebuffer();
 
+     //init finalScreen
+    Object &squareObject = _scene.createObject(GL_TRIANGLES);
+    MeshBuilder squareBuilder = MeshBuilder();
+    buildSquare(squareObject, 1, squareBuilder);
+    finalScreen =_scene.addObjectToDraw(squareObject.id);
+
     // Builds
     buildSkybox(100);
     buildWoman(5.);
@@ -65,7 +72,6 @@ GalaxyApp::GalaxyApp() : Application(WIDTH, HEIGHT) {
     //setSystem2();
     setDragon();
 	setPills();
-	//PlaySound("res/chimes.wav", NULL, SND_ASYNC|SND_FILENAME|SND_LOOP);
    
 }
 
@@ -80,9 +86,12 @@ void GalaxyApp::initPhysics(){
 // Load shaders
 void GalaxyApp::loadShaders() {
     shaders[COLOR] = loadProgram("shaders/colorShader.glsl");
+    shaders[SKY] = loadProgram("shaders/skyShader.glsl");
     shaders[TEXTURE] = loadProgram("shaders/textureShader.glsl");
     shaders[MATERIAL] = loadProgram("shaders/materialShader.glsl");
-    shaders[EFFECT] = loadProgram("shaders/effectShader.glsl");
+    shaders[BLUR] = loadProgram("shaders/blurShader.glsl");
+    shaders[COC] = loadProgram("shaders/cocShader.glsl");
+    shaders[DOF] = loadProgram("shaders/dofShader.glsl");
     _scene.setDefaultShaderID(shaders[COLOR]);
 }
 
@@ -95,6 +104,42 @@ void GalaxyApp::initFramebuffer() {
         fprintf(stderr, "Error on building framebuffer\n");
         exit( EXIT_FAILURE );
     }
+
+    status = build_framebuffer(cocFB, WIDTH, HEIGHT, 1);
+
+    if (status == -1)
+    {
+        fprintf(stderr, "Error on building framebuffer\n");
+        exit( EXIT_FAILURE );
+    }
+
+    int blurWidth = WIDTH / 2;
+    int blurHeight = HEIGHT / 2;
+
+    status = build_framebuffer(hblurFB, blurWidth, blurHeight, 1);
+
+    if (status == -1)
+    {
+        fprintf(stderr, "Error on building framebuffer\n");
+        exit( EXIT_FAILURE );
+    }
+
+    status = build_framebuffer(vblurFB, blurWidth, blurHeight, 1);
+
+    if (status == -1)
+    {
+        fprintf(stderr, "Error on building framebuffer\n");
+        exit( EXIT_FAILURE );
+    }
+
+    status = build_framebuffer(cocFB, WIDTH, HEIGHT, 1);
+
+    if (status == -1)
+    {
+        fprintf(stderr, "Error on building framebuffer\n");
+        exit( EXIT_FAILURE );
+    }
+
 }
 
 MoveableCamera* GalaxyApp::initCamera(const float size, Vector3f position) {
@@ -208,42 +253,111 @@ void GalaxyApp::animate() {
 }
 
 void GalaxyApp::renderFrame() {
+    //gbuffer
     glBindFramebuffer(GL_FRAMEBUFFER, gbufferFB.fbo);
-    glDrawBuffers(gbufferFB.outCount, gbufferFB.drawBuffers);
+        glDrawBuffers(gbufferFB.outCount, gbufferFB.drawBuffers);
+        glViewport( 0, 0, WIDTH, HEIGHT);
 
-    // Default states
-    glEnable(GL_DEPTH_TEST);
+        // Default states
+        glEnable(GL_DEPTH_TEST);
 
-    // Clear the front buffer
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        // Clear the front buffer
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // Draws scene
+        _scene.drawObjectsOfScene();
 
-    // Draws scene
-    _scene.drawObjectsOfScene();
+        glDisable(GL_DEPTH_TEST);
 
+    Matrix4f orthoProj = orthoP(-0.5, 0.5, -0.5, 0.5, -1.0, 1.0);
+   
+    //horizontal blur
+    glBindFramebuffer(GL_FRAMEBUFFER, hblurFB.fbo);
+        glDrawBuffers(hblurFB.outCount, hblurFB.drawBuffers);
+        glViewport( 0, 0, WIDTH/2, HEIGHT/2);
+
+        // Clears the window with current clearing color, clears also the depth buffer
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
+        glUseProgram(shaders[BLUR]);
+
+        glUniformMatrix4fv(glGetUniformLocation(shaders[BLUR], "projection"), 1, GL_FALSE, (const float*) orthoProj);
+        glUniform2f(glGetUniformLocation(shaders[BLUR], "direction"), 1.0, 0.0);
+        glUniform1i(glGetUniformLocation(shaders[BLUR], "Color"), 0);
+       
+        // Bind color texture
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, gbufferFB.colorTexId[0]); 
+
+        _scene.storedObjects[0]->drawObject();
+
+    //Vertical blur
+    glBindFramebuffer(GL_FRAMEBUFFER, vblurFB.fbo);
+    glDrawBuffers(vblurFB.outCount, vblurFB.drawBuffers);
+        glViewport( 0, 0, WIDTH/2, HEIGHT/2);
+
+        // Clears the window with current clearing color, clears also the depth buffer
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
+        glUseProgram(shaders[BLUR]);
+
+        glUniformMatrix4fv(glGetUniformLocation(shaders[BLUR], "projection"), 1, GL_FALSE, (const float*) orthoProj);
+        glUniform2f(glGetUniformLocation(shaders[BLUR], "direction"), 0.0, 1.0);
+        glUniform1i(glGetUniformLocation(shaders[BLUR], "Color"), 0);
+
+        // Bind color texture
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, hblurFB.colorTexId[0]); 
+
+        _scene.storedObjects[0]->drawObject();
+
+    //coc 
+    glBindFramebuffer(GL_FRAMEBUFFER, cocFB.fbo);
+        glDrawBuffers(cocFB.outCount, cocFB.drawBuffers);
+        glViewport( 0, 0, WIDTH, HEIGHT);
+
+        // Clears the window with current clearing color, clears also the depth buffer
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
+        glUseProgram(shaders[COC]);
+
+        Matrix4f inv;
+        _scene.pCamera->getProjection().inverse(inv);
+        glUniformMatrix4fv(glGetUniformLocation(shaders[COC], "projection"), 1, GL_FALSE, (const float*) orthoProj);
+        glUniformMatrix4fv(glGetUniformLocation(shaders[COC], "inverseProjection"), 1, GL_FALSE, (const float*) inv);
+        glUniform1i(glGetUniformLocation(shaders[COC], "Depth"), 0);
+           
+        // Bind color texture
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, gbufferFB.depthTexId);  
+
+        _scene.storedObjects[0]->drawObject();
+    
+    //dof 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glViewport( 0, 0, WIDTH, HEIGHT);
 
-    // Clears the window with current clearing color, clears also the depth buffer
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        // Clears the window with current clearing color, clears also the depth buffer
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
+        glUseProgram(shaders[DOF]);
 
-    glUseProgram(EFFECT);
-    Matrix4f inv;
-    _scene.pCamera->getProjection().inverse(inv);
-    glUniformMatrix4fv(glGetUniformLocation(EFFECT, "projection"), 1, GL_FALSE, (const float*) _scene.pCamera->getProjection());
-    glUniformMatrix4fv(glGetUniformLocation(EFFECT, "inverseProjection"), 1, GL_FALSE, (const float*) inv);
+        glUniformMatrix4fv(glGetUniformLocation(shaders[DOF], "projection"), 1, GL_FALSE, (const float*) orthoProj);
+        glUniform1i(glGetUniformLocation(shaders[DOF], "Color"), 0);
+        glUniform1i(glGetUniformLocation(shaders[DOF], "Blur"), 1);
+        glUniform1i(glGetUniformLocation(shaders[DOF], "BlurCoef"), 2);
 
-    // Bind depth texture
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, gbufferFB.depthTexId); 
+        // Bind color texture
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, gbufferFB.colorTexId[0]);  
+        // Bind color texture
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, vblurFB.colorTexId[0]);   
+        // Bind color texture
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, cocFB.colorTexId[0]);
 
-    // Bind color to unit 1
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, gbufferFB.colorTexId[0]); 
-
-    Object &squareObject = _scene.createObject(GL_TRIANGLES);
-    MeshBuilder squareBuilder = MeshBuilder();
-    buildSquare(squareObject, 2, squareBuilder);
-
+        _scene.storedObjects[0]->drawObject();
 
     // Draws GUI
     drawGUI();
@@ -286,32 +400,32 @@ void GalaxyApp::buildSkybox(size_t size) {
     GLuint right =_scene.addObjectToDraw(skyObject.id);
     _scene.setDrawnObjectModel(right, translation(Vector3f(size/2, 0., 0.)) * yRotation(-M_PI/2) );
     _scene.setDrawnObjectTextureID(right, 0, loadTexture( "textures/skybox/right.tga"));
-    _scene.setDrawnObjectShaderID(right, shaders[MATERIAL]);
+    _scene.setDrawnObjectShaderID(right, shaders[SKY]);
      
     GLuint left =_scene.addObjectToDraw(skyObject.id);
     _scene.setDrawnObjectModel(left, translation(Vector3f(-1. * size/2, 0., 0.)) * yRotation(M_PI/2) );
     _scene.setDrawnObjectTextureID(left, 0,loadTexture( "textures/skybox/left.tga"));
-    _scene.setDrawnObjectShaderID(left, shaders[TEXTURE]);
+    _scene.setDrawnObjectShaderID(left, shaders[SKY]);
 
     GLuint front =_scene.addObjectToDraw(skyObject.id);
     _scene.setDrawnObjectModel(front,translation(Vector3f(0., 0., size/2)) * yRotation(M_PI) );
     _scene.setDrawnObjectTextureID(front, 0, loadTexture( "textures/skybox/front.tga"));
-    _scene.setDrawnObjectShaderID(front, shaders[TEXTURE]);
+    _scene.setDrawnObjectShaderID(front, shaders[SKY]);
 
     GLuint back =_scene.addObjectToDraw(skyObject.id);
     _scene.setDrawnObjectModel(back, translation(Vector3f(0., 0., -1. * size/2)) );
     _scene.setDrawnObjectTextureID(back, 0, loadTexture( "textures/skybox/back.tga"));
-    _scene.setDrawnObjectShaderID(back, shaders[TEXTURE]);
+    _scene.setDrawnObjectShaderID(back, shaders[SKY]);
 
     GLuint top =_scene.addObjectToDraw(skyObject.id);
     _scene.setDrawnObjectModel(top,translation(Vector3f(0., size/2, 0.)) * xRotation(-M_PI/2) );
     _scene.setDrawnObjectTextureID(top, 0, loadTexture( "textures/skybox/top.tga"));
-    _scene.setDrawnObjectShaderID(top, shaders[TEXTURE]);
+    _scene.setDrawnObjectShaderID(top, shaders[SKY]);
 
     GLuint bot =_scene.addObjectToDraw(skyObject.id);
     _scene.setDrawnObjectModel(bot,translation(Vector3f(0., -1. * size/2, 0.)) * xRotation(M_PI/2));
     _scene.setDrawnObjectTextureID(bot, 0, loadTexture( "textures/skybox/bot.tga"));
-    _scene.setDrawnObjectShaderID(bot, shaders[TEXTURE]);
+    _scene.setDrawnObjectShaderID(bot, shaders[SKY]);
 }
 
 // Builds the woman
@@ -342,6 +456,8 @@ void GalaxyApp::buildStone(float size) {
 }
 
 void GalaxyApp::setSystem(){
+   /*GLuint diff = loadTexture( "textures/stone_diffuse.tga");
+   GLuint spec = loadTexture( "textures/stone_specular.tga");*/
 
     Object &sphereObject = _scene.createObject(GL_TRIANGLES);
     MeshBuilder sphereBuilder = MeshBuilder();
@@ -349,12 +465,14 @@ void GalaxyApp::setSystem(){
 
     GLuint s = createSystem();
     GLuint mat = 2;
-    for(int i = 0 ; i<50; ++i) {
+    for(int i = 0 ; i<10; ++i) {
         mat = mat < 3 ? 3 :2;
         GLuint instance =_scene.addObjectToDraw(sphereObject.id);
-        //_scene.setDrawnObjectColor(instance, Color(cos(i * 50.),  sin(i * 50.),  sin(i * 50.)));
         _scene.setDrawnObjectShaderID(instance, shaders[MATERIAL]);
         _scene.setDrawnObjectMaterialID(instance, mat);
+        /*_scene.setDrawnObjectShaderID(instance, shaders[TEXTURE]);
+        _scene.setDrawnObjectTextureID(instance, 0, diff);
+        _scene.setDrawnObjectTextureID(instance, 1, spec);*/
         GLuint particle = systems[s].addPhysicToObject(instance);
         systems[s].setPhysicObjectPosition(particle, Vector3f((0.5 - frand())/2., (0.5 - frand())/2., (0.5 - frand())/2.));//(i/5., 0., 0.));
     }
