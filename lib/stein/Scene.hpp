@@ -27,24 +27,25 @@ private:
         size_t shaderId;
         GLuint textureId0;
         GLuint textureId1;
+        GLuint textureId2;
+        GLuint textureId3;
         Matrix4f transformation;
         Color color;
         GLuint materialId;
 
-        ObjectInstance(size_t id, size_t objectId, size_t shaderId, GLuint textureId0, GLuint textureId1, const Matrix4f& transformation, const Color&color, GLuint materialId) :
-            id(id), objectId(objectId), shaderId(shaderId), textureId0(textureId0), textureId1(textureId1), transformation(transformation), color(color), materialId(materialId) {
+        ObjectInstance(size_t id, size_t objectId, size_t shaderId, GLuint textureId0, GLuint textureId1, GLuint textureId2, GLuint textureId3, const Matrix4f& transformation, const Color&color, GLuint materialId) :
+            id(id), objectId(objectId), shaderId(shaderId), textureId0(textureId0), textureId1(textureId1), textureId2(textureId2), textureId3(textureId3), transformation(transformation), color(color), materialId(materialId) {
         }
     };
 
     
-    std::vector<ObjectInstance> drawnObjects;
-    
-
     Color defaultColor; // Default color for drawn elements
     Matrix4f defaultTransformation; // Default transformation matrix for drawn elements
     GLuint defaultShaderID; // Default shaderID for drawn elements
     GLuint defaultTextureID0; // Default textureID for drawn elements
     GLuint defaultTextureID1;
+    GLuint defaultTextureID2;
+    GLuint defaultTextureID3;
     GLuint defaultMaterialID; // Default material for drawn elements
 
     const static unsigned int NA = -1;
@@ -52,7 +53,9 @@ private:
     void setAppearance(const ObjectInstance &);
 
 public:
+    std::vector<ObjectInstance> drawnObjects;
     std::vector<Object*> storedObjects; // Library of Objects to use from GPU
+    
     const static size_t maxStoredObjects = 50; // An initial limit of storable objects
     const static size_t maxDrawnObjects = 500; // An initial limit of drawable objects
 
@@ -77,6 +80,7 @@ public:
     void setDefaultTextureID(GLuint textureUnit, GLuint defaultTextureID);
 
     void drawObjectsOfScene();
+    void drawSimpleObjectsOfScene(GLuint shaderId);
 };
 
 } // namespace stein

@@ -10,7 +10,7 @@ namespace stein {
 
 // Default constructor
 Scene::Scene() :
-    defaultColor(Color::RED), defaultTransformation(Matrix4f::identity()), defaultShaderID(0), defaultTextureID0(NA), defaultTextureID1(NA), defaultMaterialID(NA) {
+    defaultColor(Color::RED), defaultTransformation(Matrix4f::identity()), defaultShaderID(0), defaultTextureID0(NA), defaultTextureID1(NA), defaultTextureID2(NA), defaultTextureID3(NA), defaultMaterialID(NA) {
     /*glEnable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
@@ -42,7 +42,7 @@ GLuint Scene::addObjectToDraw(GLuint indexStoredObject) {
     const size_t size = drawnObjects.size();
     if (size >= maxDrawnObjects)
         throw std::runtime_error("maximum number of drawn objects reached");
-    drawnObjects.push_back(ObjectInstance(size, indexStoredObject, defaultShaderID, defaultTextureID0, defaultTextureID1, defaultTransformation, defaultColor, defaultMaterialID));
+    drawnObjects.push_back(ObjectInstance(size, indexStoredObject, defaultShaderID, defaultTextureID0, defaultTextureID1, defaultTextureID2, defaultTextureID3, defaultTransformation, defaultColor, defaultMaterialID));
     return size;
 }
 
@@ -73,7 +73,9 @@ void Scene::setDrawnObjectShaderID(GLuint indexDrawnObject, GLuint shaderID) {
 //Sets the ID of the texture to use on the drawn object of index indexDrawnObject
 void Scene::setDrawnObjectTextureID(GLuint indexDrawnObject, GLuint textureUnit, GLuint textureID) {
     if (textureUnit == 0) drawnObjects[indexDrawnObject].textureId0 = textureID;
-    if (textureUnit == 1) drawnObjects[indexDrawnObject].textureId0 = textureID;
+    if (textureUnit == 1) drawnObjects[indexDrawnObject].textureId1 = textureID;
+    if (textureUnit == 2) drawnObjects[indexDrawnObject].textureId2 = textureID;
+    if (textureUnit == 3) drawnObjects[indexDrawnObject].textureId3 = textureID;
 }
 
 // Sets the light
@@ -103,6 +105,8 @@ void Scene::setDefaultShaderID(GLuint id) {
 void Scene::setDefaultTextureID(GLuint textureUnit, GLuint textureID) {
     if (textureUnit == 0) defaultTextureID0 = textureID;
     if (textureUnit == 1) defaultTextureID1 = textureID;
+    if (textureUnit == 2) defaultTextureID2 = textureID;
+    if (textureUnit == 3) defaultTextureID3 = textureID;
 }
 
 // Decides what will elements drawn after this call will look like
@@ -135,6 +139,18 @@ void Scene::setAppearance(const ObjectInstance &instance) {
             glUniform1i(glGetUniformLocation(instance.shaderId, "textureUnitSpecular"), 1);
             glActiveTexture(GL_TEXTURE1);
             glBindTexture(GL_TEXTURE_2D, instance.textureId1);
+            if(instance.textureId2 != NA) {
+                //Selects our current texture for unit 2
+                glUniform1i(glGetUniformLocation(instance.shaderId, "textureUnitNormal"), 2);
+                glActiveTexture(GL_TEXTURE2);
+                glBindTexture(GL_TEXTURE_2D, instance.textureId2);
+                 if(instance.textureId2 != NA) {
+                    //Selects our current texture for unit 3
+                    glUniform1i(glGetUniformLocation(instance.shaderId, "textureUnitDisplacement"), 3);
+                    glActiveTexture(GL_TEXTURE3);
+                    glBindTexture(GL_TEXTURE_2D, instance.textureId3);
+                }
+            }
         }
         setTextureUnitsInShader(shaderId);
     }
@@ -143,6 +159,16 @@ void Scene::setAppearance(const ObjectInstance &instance) {
     const Object * pObject = storedObjects[instance.objectId];
     assert(pObject);
     setFilledDataInShader(shaderId, pObject->hasPrimitives(), pObject->hasNormals(), pObject->hasUvs(), pObject->hasColors());
+}
+
+void Scene::drawSimpleObjectsOfScene(GLuint shaderId) {   
+    for (size_t i = 1; i < drawnObjects.size(); ++i) {
+        const ObjectInstance &instance = drawnObjects[i];
+        const Object * pObject = storedObjects[instance.objectId];
+        assert(pObject);
+        setFilledDataInShader(shaderId, pObject->hasPrimitives(), pObject->hasNormals(), pObject->hasUvs(), 0);
+        storedObjects[instance.objectId]->drawObject();
+    } 
 }
 
 // Draw all Objects

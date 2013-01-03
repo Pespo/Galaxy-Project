@@ -26,9 +26,13 @@ Matrix4f orthoP(float left, float right, float bottom, float top, float nearVal,
 
 void ortho(float left, float right, float bottom, float top, float nearVal, float farVal, float * matA);
 
+Matrix4f lookAt(Vector3f &vecEye, Vector3f &vecCenter, Vector3f &vecUp);
+Matrix4f perspective(float fovy, float aspect, float nearVal, float farVal) ;
+
 void printGlErrors();
 
-GLuint loadTexture(const char* fileName, bool texture0 = true);
+GLuint loadTexture(const char* fileName);
+GLuint loadTextureCube(/*const char* fileName[6]*/);
 GLuint loadProgram(const std::vector<std::string> & files);
 GLuint loadProgram(const std::string& file);
 void printShaderLog(GLuint shaderId);

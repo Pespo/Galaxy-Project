@@ -28,7 +28,7 @@ using namespace std;
 using namespace stein;
 
 enum shaderType {
-    COLOR, SKY, TEXTURE, MATERIAL, BLUR, COC, DOF
+    COLOR, SKY, TEXTURE, CUBEMAP, MATERIAL, SHADOW, LIGHT, BLUR, COC, DOF, GAMMA
 };
 
 enum materialType {
@@ -65,7 +65,9 @@ GalaxyApp::GalaxyApp() : Application(WIDTH, HEIGHT) {
 
     // Builds
     buildSkybox(100);
+    
     buildWoman(5.);
+
     buildStone(6.);
 
     setSystem();
@@ -89,15 +91,26 @@ void GalaxyApp::loadShaders() {
     shaders[SKY] = loadProgram("shaders/skyShader.glsl");
     shaders[TEXTURE] = loadProgram("shaders/textureShader.glsl");
     shaders[MATERIAL] = loadProgram("shaders/materialShader.glsl");
+    shaders[SHADOW] = loadProgram("shaders/shadowShader.glsl");
+    shaders[LIGHT] = loadProgram("shaders/lightShader.glsl");
     shaders[BLUR] = loadProgram("shaders/blurShader.glsl");
     shaders[COC] = loadProgram("shaders/cocShader.glsl");
     shaders[DOF] = loadProgram("shaders/dofShader.glsl");
+    shaders[GAMMA] = loadProgram("shaders/gammaShader.glsl");
     _scene.setDefaultShaderID(shaders[COLOR]);
 }
 
 // Init frame buffers
 void GalaxyApp::initFramebuffer() {
-    int status = build_framebuffer(gbufferFB, WIDTH, HEIGHT, 1);
+    int status = build_framebuffer(gbufferFB, WIDTH, HEIGHT, 2);
+
+    if (status == -1)
+    {
+        fprintf(stderr, "Error on building framebuffer\n");
+        exit( EXIT_FAILURE );
+    }
+
+    status = build_framebuffer(lightFB, WIDTH, HEIGHT, 1);
 
     if (status == -1)
     {
@@ -134,6 +147,14 @@ void GalaxyApp::initFramebuffer() {
 
     status = build_framebuffer(cocFB, WIDTH, HEIGHT, 1);
 
+    if (status == -1)
+    {
+        fprintf(stderr, "Error on building framebuffer\n");
+        exit( EXIT_FAILURE );
+    }
+    
+    status = build_framebuffer(dofFB, WIDTH, HEIGHT, 1);
+    
     if (status == -1)
     {
         fprintf(stderr, "Error on building framebuffer\n");
@@ -208,13 +229,13 @@ void GalaxyApp::animate() {
        
     ((MoveableCamera*)_scene.pCamera)->move();
 
-   
-  
     ////////System 1 : Particule dans la main
         systems[SPHERE].applySprings();
         systems[SPHERE].solve();
         for(int j = 0; j<systems[SPHERE].physicalObjects.size(); ++j){
-            _scene.setDrawnObjectModel(systems[SPHERE].physicalObjects[j]->m_ObjectInstanceId, translation(systems[SPHERE].physicalObjects[j]->m_position) * yRotation(frand()) * xRotation(frand()) * zRotation(frand())); 
+            systems[SPHERE].physicalObjects[j]->m_rotation.y +=0.1;
+            systems[SPHERE].physicalObjects[j]->m_rotation.x +=0.1;
+            _scene.setDrawnObjectModel(systems[SPHERE].physicalObjects[j]->m_ObjectInstanceId, translation(systems[SPHERE].physicalObjects[j]->m_position) * yRotation(systems[SPHERE].physicalObjects[j]->m_rotation.y) * xRotation(systems[SPHERE].physicalObjects[j]->m_rotation.x) * scale(Vector3f(systems[SPHERE].physicalObjects[j]->m_mass, systems[SPHERE].physicalObjects[j]->m_mass, systems[SPHERE].physicalObjects[j]->m_mass)) /*  zRotation(frand())*/); 
         }
     
     ///////System 2 : Cube aimant    
@@ -223,12 +244,13 @@ void GalaxyApp::animate() {
         for(int i = 0; i < systems[PILLS].physicalObjects.size(); ++i) {
             if((systems[DRAGON].physicalObjects[0]->m_position - systems[PILLS].physicalObjects[i]->m_position).norm() > (d)){
                 d = (systems[DRAGON].physicalObjects[0]->m_position - systems[PILLS].physicalObjects[i]->m_position).norm();
-                direction = systems[PILLS].physicalObjects[i]->m_position;
+                direction = systems[PILLS].physicalObjects[i]->m_position - systems[DRAGON].physicalObjects[0]->m_position;
             }
+            _scene.setDrawnObjectModel(systems[PILLS].physicalObjects[i]->m_ObjectInstanceId, translation(systems[PILLS].physicalObjects[i]->m_position)); 
         }
 
     ///////System 3 : Dragon 
-        systems[DRAGON].physicalObjects[0]->m_force = direction * forceDragon; //Tête du dragon
+        systems[DRAGON].physicalObjects[0]->m_force = direction * forceDragon ; //Tête du dragon
 
         //Rotation en Y
         Vector3f zero = Vector3f(1., 0., 0.);
@@ -267,12 +289,116 @@ void GalaxyApp::renderFrame() {
         // Draws scene
         _scene.drawObjectsOfScene();
 
+        /*glEnable(GL_TEXTURE_CUBE_MAP);
+
+        glEnable(GL_TEXTURE_GEN_S);
+        glEnable(GL_TEXTURE_GEN_T);
+        glEnable(GL_TEXTURE_GEN_R);
+
+        glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP);
+        glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP);
+        glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP);
+
+        glUseProgram(_scene.drawnObjects[1].shaderId); // From now on, this shader will be used.
+        // We use the specific values of model per object
+        setMatricesInShader(_scene.drawnObjects[1].shaderId, _scene.drawnObjects[1].transformation, _scene.pCamera->getView(), _scene.pCamera->getPosition(), _scene.pCamera->getProjection());
+
+            //Selects our current texture for unit 0
+            glUniform1i(glGetUniformLocation(_scene.drawnObjects[1].shaderId, "textureUnitDiffuse"), 0);
+            
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_CUBE_MAP, _scene.drawnObjects[1].textureId0);
+           
+            setTextureUnitsInShader(_scene.drawnObjects[1].shaderId);
+            _scene.storedObjects[_scene.drawnObjects[1].objectId]->drawObject();*/
+
         glDisable(GL_DEPTH_TEST);
 
     Matrix4f orthoProj = orthoP(-0.5, 0.5, -0.5, 0.5, -1.0, 1.0);
+    Matrix4f inv;
+    _scene.pCamera->getProjection().inverse(inv);
+
+/*    //shadow
+    // Bind shadow fbo
+    glBindFramebuffer(GL_FRAMEBUFFER, shadowFB.fbo);
+        glDrawBuffers(shadowFB.outCount, shadowFB.drawBuffers);
+        glViewport( 0, 0, WIDTH, HEIGHT);
+
+        // Clear the front buffer
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // Compute light positions
+        Vector3f lightPosition(0.0, 10.0, 0.0);
+        Vector3f lightTarget( 0.0, 0.0, 0.0);
+        Vector3f lightDirection = lightTarget - lightPosition;
+        
+        Vector3f lightUp(0.0, 1.0, 0.0);
+        lightDirection.normalize();
+        Vector3f lightColor(1.0, 1.0, 1.0);
+        float lightIntensity = 1.0;
+
+        // Build shadow matrices
+        Matrix4f shadowProjection = perspective(60.f, 1.f, 1.0f, 1000.f);
+        Matrix4f worldToLight = lookAt(lightPosition, lightTarget, lightUp);
+        
+        Matrix4f projectionLight = worldToLight * shadowProjection;     
+        Matrix4f projectionLightBias = projectionLight * Matrix4f(
+            0.5f, 0.f, 0.f, 0.5f,
+            0.f, 0.5f, 0.f, 0.5f,
+            0.f, 0.f, 0.5f, 0.5f,
+            0.f, 0.f, 0.f, 1.f);
+
+        Matrix4f objectToWorld = Matrix4f::identity();
+        float shadowBias = 0.001f;
+        float shadowSamples = 1.0;
+        float shadowSampleSpread = 800.0;
+
+        // Bind shadowgen shader
+        glUseProgram(shaders[SHADOW]);
+        // Upload uniforms
+        glUniformMatrix4fv(glGetUniformLocation(shaders[SHADOW], "Projection"), 1, 0, shadowProjection);
+        glUniformMatrix4fv(glGetUniformLocation(shaders[SHADOW], "View"), 1, 0, worldToLight);
+        glUniformMatrix4fv(glGetUniformLocation(shaders[SHADOW], "Object"), 1, 0, objectToWorld);
+        glUniform1i(glGetUniformLocation(shaders[SHADOW], "Normal"), 0);
+
+        // Bind normal to unit 1
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, gbufferFB.colorTexId[1]);  
+        // Render vaos
+        glCullFace(GL_FRONT);
+        _scene.drawSimpleObjectsOfScene(shaders[SHADOW]);*/
+
+    //Light
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        //glDrawBuffers(lightFB.outCount, lightFB.drawBuffers);
+        glViewport( 0, 0, WIDTH, HEIGHT);
+
+        // Clears the window with current clearing color, clears also the depth buffer
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
+        glUseProgram(shaders[LIGHT]);
+
+        glUniformMatrix4fv(glGetUniformLocation(shaders[LIGHT], "projection"), 1, GL_FALSE, (const float*) orthoProj);
+        glUniformMatrix4fv(glGetUniformLocation(shaders[LIGHT], "inverseProjection"), 1, GL_FALSE, (const float*) _scene.pCamera->getViewInv());
+        glUniform3fv(glGetUniformLocation(shaders[LIGHT], "cameraPosition"), 1, (const float*) _scene.pCamera->getPosition());
+        glUniform1i(glGetUniformLocation(shaders[LIGHT], "Diffuse"), 0);
+        glUniform1i(glGetUniformLocation(shaders[LIGHT], "Normal"), 1);
+        glUniform1i(glGetUniformLocation(shaders[LIGHT], "Depth"), 2);
+       
+        // Bind color texture
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, gbufferFB.colorTexId[0]); 
+        // Bind normal to unit 1
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, gbufferFB.colorTexId[1]);    
+        // Bind depth to unit 2
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, gbufferFB.depthTexId);  
+
+        _scene.storedObjects[0]->drawObject();
    
     //horizontal blur
-    glBindFramebuffer(GL_FRAMEBUFFER, hblurFB.fbo);
+    /*glBindFramebuffer(GL_FRAMEBUFFER, hblurFB.fbo);
         glDrawBuffers(hblurFB.outCount, hblurFB.drawBuffers);
         glViewport( 0, 0, WIDTH/2, HEIGHT/2);
 
@@ -289,10 +415,10 @@ void GalaxyApp::renderFrame() {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, gbufferFB.colorTexId[0]); 
 
-        _scene.storedObjects[0]->drawObject();
+        _scene.storedObjects[0]->drawObject();*/
 
     //Vertical blur
-    glBindFramebuffer(GL_FRAMEBUFFER, vblurFB.fbo);
+    /*glBindFramebuffer(GL_FRAMEBUFFER, vblurFB.fbo);
     glDrawBuffers(vblurFB.outCount, vblurFB.drawBuffers);
         glViewport( 0, 0, WIDTH/2, HEIGHT/2);
 
@@ -309,10 +435,10 @@ void GalaxyApp::renderFrame() {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, hblurFB.colorTexId[0]); 
 
-        _scene.storedObjects[0]->drawObject();
+        _scene.storedObjects[0]->drawObject();*/
 
     //coc 
-    glBindFramebuffer(GL_FRAMEBUFFER, cocFB.fbo);
+    /*glBindFramebuffer(GL_FRAMEBUFFER, cocFB.fbo);
         glDrawBuffers(cocFB.outCount, cocFB.drawBuffers);
         glViewport( 0, 0, WIDTH, HEIGHT);
 
@@ -321,8 +447,7 @@ void GalaxyApp::renderFrame() {
         
         glUseProgram(shaders[COC]);
 
-        Matrix4f inv;
-        _scene.pCamera->getProjection().inverse(inv);
+    
         glUniformMatrix4fv(glGetUniformLocation(shaders[COC], "projection"), 1, GL_FALSE, (const float*) orthoProj);
         glUniformMatrix4fv(glGetUniformLocation(shaders[COC], "inverseProjection"), 1, GL_FALSE, (const float*) inv);
         glUniform1i(glGetUniformLocation(shaders[COC], "Depth"), 0);
@@ -331,10 +456,11 @@ void GalaxyApp::renderFrame() {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, gbufferFB.depthTexId);  
 
-        _scene.storedObjects[0]->drawObject();
+        _scene.storedObjects[0]->drawObject();*/
     
     //dof 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    /*glBindFramebuffer(GL_FRAMEBUFFER, dofFB.fbo);
+        glDrawBuffers(dofFB.outCount, dofFB.drawBuffers);
         glViewport( 0, 0, WIDTH, HEIGHT);
 
         // Clears the window with current clearing color, clears also the depth buffer
@@ -357,7 +483,25 @@ void GalaxyApp::renderFrame() {
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, cocFB.colorTexId[0]);
 
-        _scene.storedObjects[0]->drawObject();
+        _scene.storedObjects[0]->drawObject();*/
+
+    //Gamma
+    /*glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glViewport( 0, 0, WIDTH, HEIGHT);
+
+        // Clears the window with current clearing color, clears also the depth buffer
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
+        glUseProgram(shaders[GAMMA]);
+
+        glUniformMatrix4fv(glGetUniformLocation(shaders[GAMMA], "projection"), 1, GL_FALSE, (const float*) orthoProj);
+        glUniform1i(glGetUniformLocation(shaders[GAMMA], "Color"), 0);
+
+        // Bind color texture
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, dofFB.colorTexId[0]);
+
+        _scene.storedObjects[0]->drawObject();*/
 
     // Draws GUI
     drawGUI();
@@ -430,16 +574,27 @@ void GalaxyApp::buildSkybox(size_t size) {
 
 // Builds the woman
 void GalaxyApp::buildWoman(float size) {
-    Object &womanObject = _scene.createObject(GL_TRIANGLES);
+    GLuint diff = loadTexture( "textures/woman/womanDiffuse.tga");
+   GLuint spec = loadTexture( "textures/woman/womanSpecular.tga");
+   GLuint norm = loadTexture( "textures/woman/womanNormal.tga");
+   GLuint disp = loadTexture( "textures/woman/womanDisp.tga");
 
+    /*char* files[] = {"textures/skybox/right.tga", "textures/skybox/left.tga", "textures/skybox/front.tga", "textures/skybox/back.tga", "textures/skybox/top.tga","textures/skybox/bot.tga"} ;
+    */ //GLuint tex = loadTextureCube(/*files*/);
+    Object &womanObject = _scene.createObject(GL_TRIANGLES);
     MeshBuilder womanBuilder = MeshBuilder();
     buildObjectGeometryFromOBJ(womanObject, "res/objs/woman.obj", false, false, womanBuilder);
-
     GLuint woman =_scene.addObjectToDraw(womanObject.id);
-    _scene.setDrawnObjectShaderID(woman, shaders[MATERIAL]);
-    _scene.setDrawnObjectColor(woman, Color(1., 1., 0.));
     _scene.setDrawnObjectModel(woman, translation(Vector3f( -3.2 , -7.7, -2.5)) * yRotation(-M_PI/8) * scale(Vector3f( size , size, size)));
-    _scene.setDrawnObjectMaterialID(woman, JADE);
+    //_scene.setDrawnObjectShaderID(woman, shaders[CUBEMAP]);
+    _scene.setDrawnObjectShaderID(woman, shaders[TEXTURE]);
+    //_scene.setDrawnObjectTextureID(woman, 0, tex);
+    _scene.setDrawnObjectTextureID(woman, 0, diff);
+    _scene.setDrawnObjectTextureID(woman, 1, spec);
+    _scene.setDrawnObjectTextureID(woman, 2, norm);
+    _scene.setDrawnObjectTextureID(woman, 2, disp);
+   /* _scene.setDrawnObjectShaderID(woman, shaders[MATERIAL]);
+    _scene.setDrawnObjectMaterialID(woman, JADE);*/
 }
 
 void GalaxyApp::buildStone(float size) {
@@ -456,34 +611,43 @@ void GalaxyApp::buildStone(float size) {
 }
 
 void GalaxyApp::setSystem(){
-   /*GLuint diff = loadTexture( "textures/stone_diffuse.tga");
-   GLuint spec = loadTexture( "textures/stone_specular.tga");*/
+   GLuint diff = loadTexture( "textures/sphere/mercureDiffuse.tga");
+   GLuint spec = loadTexture( "textures/sphere/mercureSpecular.tga");
+   GLuint norm = loadTexture( "textures/sphere/mercureNormal.tga");
+   GLuint disp = loadTexture( "textures/sphere/mercureDisp.tga");
 
     Object &sphereObject = _scene.createObject(GL_TRIANGLES);
     MeshBuilder sphereBuilder = MeshBuilder();
-    buildCube(sphereObject, 0.05, sphereBuilder);
+    //buildCube(sphereObject, 1, sphereBuilder);
+    buildObjectGeometryFromOBJ(sphereObject, "res/objs/sphere.obj", false, false, sphereBuilder);
 
     GLuint s = createSystem();
     GLuint mat = 2;
-    for(int i = 0 ; i<10; ++i) {
+    for(int i = 0 ; i<20; ++i) {
         mat = mat < 3 ? 3 :2;
         GLuint instance =_scene.addObjectToDraw(sphereObject.id);
-        _scene.setDrawnObjectShaderID(instance, shaders[MATERIAL]);
-        _scene.setDrawnObjectMaterialID(instance, mat);
-        /*_scene.setDrawnObjectShaderID(instance, shaders[TEXTURE]);
+       /* _scene.setDrawnObjectShaderID(instance, shaders[MATERIAL]);
+        _scene.setDrawnObjectMaterialID(instance, mat);*/
+        _scene.setDrawnObjectShaderID(instance, shaders[TEXTURE]);
         _scene.setDrawnObjectTextureID(instance, 0, diff);
-        _scene.setDrawnObjectTextureID(instance, 1, spec);*/
+        _scene.setDrawnObjectTextureID(instance, 1, spec);
+        _scene.setDrawnObjectTextureID(instance, 2, norm);
+        _scene.setDrawnObjectTextureID(instance, 3, disp);
+        _scene.setDrawnObjectModel(instance, translation(Vector3f((0.5 - frand())/2., (0.5 - frand())/2., (0.5 - frand())/2.)));
+        
+
         GLuint particle = systems[s].addPhysicToObject(instance);
         systems[s].setPhysicObjectPosition(particle, Vector3f((0.5 - frand())/2., (0.5 - frand())/2., (0.5 - frand())/2.));//(i/5., 0., 0.));
+        systems[s].setPhysicObjectMass(particle, 0.05);
     }
 
-    systems[s].setHookSpring(500, 0.5);   
+    systems[s].setHookSpring(50, 0.5);   
     systems[s].setCineticBrake(0.00001);
 }
 
 void GalaxyApp::setSystem2(){
 
-    Object &sphereObject = _scene.createObject(GL_TRIANGLES);
+    /*Object &sphereObject = _scene.createObject(GL_TRIANGLES);
     MeshBuilder sphereBuilder = MeshBuilder();
     buildCube(sphereObject, 0.05, sphereBuilder);
 
@@ -501,7 +665,7 @@ void GalaxyApp::setSystem2(){
 
     //systems[s].setHookSpring(1, 0.5);   
     //systems[s].setCineticBrake(0.001);
-    systems[s].setAttraction(10);
+    systems[s].setAttraction(10);*/
 }
 
 void GalaxyApp::setPills(){
@@ -511,18 +675,21 @@ void GalaxyApp::setPills(){
     buildCube(sphereObject, 0.1, sphereBuilder);
 
     GLuint s = createSystem();
-    for(int i = 0 ; i<10; ++i) {
+    for(int i = 0 ; i<20; ++i) {
         GLuint instance =_scene.addObjectToDraw(sphereObject.id);
-        _scene.setDrawnObjectColor(instance, Color(cos(i * 50.),  sin(i * 50.),  sin(i * 50.)));
-        _scene.setDrawnObjectShaderID(instance, shaders[MATERIAL]);
-        _scene.setDrawnObjectMaterialID(instance, JADE);
+        _scene.setDrawnObjectColor(instance, Color(1.0, 0., 0.));
         GLuint particle = systems[s].addPhysicToObject(instance);
-        systems[s].setPhysicObjectPosition(particle, Vector3f((0.5 - frand())*5., (0.5 - frand())*5., (0.5 - frand())*5.));//(i/5., 0., 0.));
+        systems[s].setPhysicObjectPosition(particle, Vector3f((0.5 - frand())*20., (0.5 - frand())*20., (0.5 - frand())*20.));//(i/5., 0., 0.));
     }
 }
 
 void GalaxyApp::setDragon(){
 
+    GLuint diff = loadTexture( "textures/dragon/dragonDiffuse.tga");
+    GLuint diff2 = loadTexture( "textures/dragon/dragon.tga");
+    GLuint spec = loadTexture( "textures/dragon/dragonSpecular.tga");
+    GLuint norm = loadTexture( "textures/dragon/dragonNormal.tga");
+    GLuint disp = loadTexture( "textures/dragon/dragonDisp.tga");
     GLuint s = createSystem();
 
     Object &dragonObject = _scene.createObject(GL_TRIANGLES);
@@ -530,22 +697,32 @@ void GalaxyApp::setDragon(){
     buildObjectGeometryFromOBJ(dragonObject, "res/objs/dragonHead.obj", false, false, dragonBuilder);
 
     GLuint instance =_scene.addObjectToDraw(dragonObject.id);
-    _scene.setDrawnObjectShaderID(instance, shaders[MATERIAL]);
-    _scene.setDrawnObjectMaterialID(instance, GOLD);
+    /*_scene.setDrawnObjectShaderID(instance, shaders[MATERIAL]);
+    _scene.setDrawnObjectMaterialID(instance, GOLD);*/
+    _scene.setDrawnObjectShaderID(instance, shaders[TEXTURE]);
+    _scene.setDrawnObjectTextureID(instance, 0, diff2);
+    _scene.setDrawnObjectTextureID(instance, 1, spec);
+    _scene.setDrawnObjectTextureID(instance, 2, norm);
+    _scene.setDrawnObjectTextureID(instance, 3, disp);
     GLuint particle = systems[s].addPhysicToObject(instance);
     systems[s].setPhysicObjectPosition(particle, Vector3f(-1., 0., 0.));
     systems[s].setPhysicObjectMass(particle, 1);
 
     Object &sphereObject = _scene.createObject(GL_TRIANGLES);
     MeshBuilder sphereBuilder = MeshBuilder();
-    //buildCube(sphereObject, 0.05, sphereBuilder);
+    //buildCube(sphereObject, 0.5, sphereBuilder);
     buildObjectGeometryFromOBJ(sphereObject, "res/objs/sphere.obj", false, false, sphereBuilder);
 
     for(int i = 0 ; i<20; ++i) {
         instance =_scene.addObjectToDraw(sphereObject.id);
         _scene.setDrawnObjectColor(instance, Color(cos(i * 50.),  sin(i * 50.),  sin(i * 50.)));
-        _scene.setDrawnObjectShaderID(instance, shaders[MATERIAL]);
-        _scene.setDrawnObjectMaterialID(instance, GOLD);
+        _scene.setDrawnObjectShaderID(instance, shaders[TEXTURE]);
+        _scene.setDrawnObjectTextureID(instance, 0, diff);
+        _scene.setDrawnObjectTextureID(instance, 1, spec);
+        _scene.setDrawnObjectTextureID(instance, 2, norm);
+        _scene.setDrawnObjectTextureID(instance, 3, disp);
+       /* _scene.setDrawnObjectShaderID(instance, shaders[MATERIAL]);
+        _scene.setDrawnObjectMaterialID(instance, GOLD);*/
         particle = systems[s].addPhysicToObject(instance);
         systems[s].setPhysicObjectPosition(particle, Vector3f(-1 - i, 0., 0.));
         systems[s].setPhysicObjectMass(particle, 0.1);

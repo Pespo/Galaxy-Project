@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <cmath>
+#define M_PI  3.14159265f
 
 using namespace std;
 
@@ -91,6 +92,34 @@ void ortho(float left, float right, float bottom, float top, float nearVal, floa
     matA[12] = tx; matA[13] = ty; matA[14] = tz; matA[15] = 1.0f;
 }
 
+Matrix4f lookAt(Vector3f &vecEye, Vector3f &vecCenter, Vector3f &vecUp){
+    Vector3f forward = vecCenter - vecEye ;
+    forward.normalize();
+    Vector3f side = forward.crossP(vecUp);
+    side.normalize();
+    Vector3f up = side.crossP(forward);
+    Vector3f eyeInv = vecEye * -1;
+    Matrix4f mat(side[0],   side[1],    side[2],    0.,
+                 up[0],     up[1],      up[2],      0.,
+                 -forward[0],  -forward[1], -forward[2], 0.,
+                 0., 0., 0., 1.  );
+
+    return mat * translation(eyeInv);
+}
+
+
+Matrix4f perspective(float fovy, float aspect, float nearVal, float farVal) {
+    float top = nearVal * tanf(fovy * M_PI / 360.0f);
+    float bottom = -top;
+    float left = bottom * aspect;
+    float right = top * aspect;
+    return Matrix4f(    2.0f*nearVal/(right-left), 0.0f, 0.0f, 0.0f,
+                        0.0f, 2.0f*nearVal/(top-bottom), 0.0f, 0.0f,
+                        (right+left)/(right-left), (top+bottom)/(top-bottom), -(farVal+nearVal)/(farVal-nearVal), -1.0f,
+                        0.0f, 0.0f, -(2.0f*farVal*nearVal)/(farVal-nearVal), 0.0f );
+}
+
+
 // Builds a perspective projection matrix and stores it in mat
 // l=left, r=right, b=bottom, t=top, n=near, f=far in the frustum
 void setPerspective(GLfloat * mat, GLfloat l, GLfloat r, GLfloat b, GLfloat t, GLfloat n, GLfloat f) {
@@ -124,9 +153,9 @@ void printGlErrors() {
 }
 
 // Loads a simple texture
-GLuint loadTexture(const char* fileName, bool texture0) {
+GLuint loadTexture(const char* fileName) {
    
-   	texture0 ? glActiveTexture(GL_TEXTURE0) : glActiveTexture(GL_TEXTURE1);
+   	glActiveTexture(GL_TEXTURE0);
 
     // Allocates a texture id
     GLuint textureID = 0;
@@ -142,6 +171,58 @@ GLuint loadTexture(const char* fileName, bool texture0) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     return textureID;
+}
+
+GLuint loadTextureCube(/*const char* fileName[6]*/) {
+
+    char* fileName[] = {"textures/skybox/right.tga", "textures/skybox/left.tga", "textures/skybox/front.tga", "textures/skybox/back.tga", "textures/skybox/top.tga","textures/skybox/bot.tga"} ;
+    
+    GLFWimage* image1 = new GLFWimage();
+    GLFWimage* image2 = new GLFWimage();;
+    GLFWimage* image3 = new GLFWimage();;
+    GLFWimage* image4 = new GLFWimage();;
+    GLFWimage* image5 = new GLFWimage();;
+    GLFWimage* image6 = new GLFWimage();;
+
+    glfwReadImage( fileName[0], image1, GLFW_ORIGIN_UL_BIT);
+    glfwReadImage( fileName[1], image2, GLFW_ORIGIN_UL_BIT);
+    glfwReadImage( fileName[2], image3, GLFW_ORIGIN_UL_BIT);
+    glfwReadImage( fileName[3], image4, GLFW_ORIGIN_UL_BIT);
+    glfwReadImage( fileName[4], image5, GLFW_ORIGIN_UL_BIT);
+    glfwReadImage( fileName[5], image6, GLFW_ORIGIN_UL_BIT);
+
+    glActiveTexture(GL_TEXTURE0);
+
+    // Allocates a texture id
+    GLuint TextureID = 0;
+    glGenTextures(1, &TextureID);
+
+    glBindTexture(GL_TEXTURE_CUBE_MAP,TextureID);
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X_EXT, 0, GL_RGB, image1->Width, image1->Height, 0, GL_RGB, GL_UNSIGNED_BYTE, image1->Data);
+    
+    glBindTexture(GL_TEXTURE_CUBE_MAP,TextureID);
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X_EXT, 0, GL_RGB, image2->Width, image2->Height, 0, GL_RGB, GL_UNSIGNED_BYTE, image2->Data);
+
+    glBindTexture(GL_TEXTURE_CUBE_MAP,TextureID);
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X_EXT, 0, GL_RGB, image3->Width, image3->Height, 0, GL_RGB, GL_UNSIGNED_BYTE, image3->Data);
+
+    glBindTexture(GL_TEXTURE_CUBE_MAP,TextureID);
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X_EXT, 0, GL_RGB, image4->Width, image4->Height, 0, GL_RGB, GL_UNSIGNED_BYTE, image4->Data);
+
+    glBindTexture(GL_TEXTURE_CUBE_MAP,TextureID);
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X_EXT, 0, GL_RGB, image5->Width, image5->Height, 0, GL_RGB, GL_UNSIGNED_BYTE, image5->Data);
+
+    glBindTexture(GL_TEXTURE_CUBE_MAP,TextureID);
+    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X_EXT, 0, GL_RGB, image6->Width, image6->Height, 0, GL_RGB, GL_UNSIGNED_BYTE, image6->Data);
+
+    // How to handle not normalised uvs
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    // How to handle interpolation from texels to fragments
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    return TextureID;
 }
 
 // Writes content of a text file [fileName] in a returned string

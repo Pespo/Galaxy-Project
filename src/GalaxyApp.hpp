@@ -22,13 +22,17 @@ public:
 
     std::vector<PhysicManager> systems;
 
-    FramebufferGL gbufferFB;    
+    FramebufferGL gbufferFB; 
+    FramebufferGL shadowFB; 
+    FramebufferGL lightFB;   
     FramebufferGL hblurFB;
     FramebufferGL vblurFB;
     FramebufferGL cocFB;
+    FramebufferGL dofFB;
+    //FramebufferGL gammaFB;
 
     float forceDragon;
-    GLuint shaders[7];
+    GLuint shaders[11];
     GLuint finalScreen;
     //SoundFileRead soundfile;
 
