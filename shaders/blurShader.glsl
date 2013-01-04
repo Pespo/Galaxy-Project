@@ -2,6 +2,7 @@
 
 // Uniforms : data shared by every shader
 uniform mat4 projection;
+uniform int SampleCount;
 
 #ifdef _VERTEX_
 
@@ -31,7 +32,6 @@ uniform vec2 direction;
 out vec4 fragColor;
 
 void main () {
-    int SampleCount = 3;
     
     float weight = 1.0 / (SampleCount * 2);
     vec3 color = vec3(0.0, 0.0, 0.0);

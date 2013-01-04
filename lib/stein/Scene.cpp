@@ -116,11 +116,6 @@ void Scene::setAppearance(const ObjectInstance &instance) {
     // We use the specific values of model per object
     setMatricesInShader(shaderId, instance.transformation, pCamera->getView(), pCamera->getPosition(), pCamera->getProjection());
     
-    glUniform4fv(glGetUniformLocation(instance.shaderId, "color"), 1, instance.color);
-
-   /* glUniform4fv(glGetUniformLocation(instance.shaderId, "lightPosition"), 1, instance.color);
-    glUniform4fv(glGetUniformLocation(instance.shaderId, "lightDirection"), 1, instance.color);*/
-
     if(instance.materialId != NA) {
         // Sets the material
 		setMaterialInShader(shaderId, instance.materialId);

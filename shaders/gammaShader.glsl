@@ -2,6 +2,8 @@
 
 // Uniforms : data shared by every shader
 uniform mat4 projection;
+uniform float SobelCoef;
+uniform float Gamma;
 uniform sampler2D Color;
 
 #ifdef _VERTEX_
@@ -32,8 +34,6 @@ uniform mat3 G[2] = mat3[](
 
 void main(void)
 {
-    float Gamma = 1.0;
-    float SobelCoef = 0.5;
 	//vec3 color = texture(Color, uv).rgb;
 	vec3 color = texelFetch(Color, ivec2(gl_FragCoord.xy), 0).rgb;
 

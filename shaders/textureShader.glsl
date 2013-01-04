@@ -5,6 +5,7 @@ uniform mat4 model;
 uniform mat4 view;
 uniform vec3 cameraPosition;
 uniform mat4 projection;
+uniform vec3 dragonPosition;
 
 uniform sampler2D textureUnitDiffuse;
 uniform sampler2D textureUnitSpecular;
@@ -33,7 +34,7 @@ void main(void)
 	// gl_Position = projection * view * model * vertexPosition;
 
 	vec3 dv = texture( textureUnitDisplacement, vertexUv ).xyz;
-	float dfx = 0.02 * dv.x;
+	float dfx = 0.05* dv.x;
 	vec3 displacedPosition = normal.x * dfx + vertexPosition.xyz;
 
 	position = vec3(model * vec4(displacedPosition, 1.));
@@ -101,14 +102,13 @@ void main(void)
 	float spec = texture(textureUnitSpecular, uv).r;
 	
 	vec3 cpointlight1 = pointLight(vec3(0.2, 0.2, .6), 4, vec3(0.0, 0.1, 0.0), normal, position, diffuse.rgb, spec, cameraPosition);
-	//vec3 cpointlight2 = pointLight(vec3(1.0, 0.0, 0.0), 1.0, vec3(10.0, 1.0, 10.0), n, position, diffuse, spec, cameraPosition);
+	//vec3 cpointlight2 = pointLight(vec3(1.0, 1.0, 1.0), 5, dragonPosition, normal, position, diffuse.rgb, spec, cameraPosition);
 	vec3 cdirlight1 = directionalLight(vec3(0.8, 0.8, 0.8), 1, vec3(0.0, -1.0, 0.0), normal, position, diffuse.rgb, spec, cameraPosition);
-	//vec3 cspotlight1 = spotLight(vec3(1.0, 1.0, 0.0), 1., vec3(0., -1., 0.), vec3( 0., 5.5, 0.), n, position, diffuse, spec, cameraPosition );
+	//vec3 cspotlight1 = spotLight(vec3(1.0, 1.0, 1.0), 1., dragonDirection * - 1, dragonPosition, n, position, diffuse, spec, cameraPosition );
 
-	fragColor = vec4( cpointlight1 + cdirlight1, 1.0);
-
-	//fragColor = vec4(diffuse, spec);
+	fragColor = vec4( cpointlight1 + cdirlight1 /*+ cspotlight1*/, spec);
 	fragNormal = vec4(normal, spec);
+
 
 }
 

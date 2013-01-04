@@ -3,6 +3,7 @@
 // Uniforms : data shared by every shader
 uniform mat4 projection;
 uniform mat4 inverseProjection;
+uniform vec3 focus;
 
 #ifdef _VERTEX_
 
@@ -31,7 +32,7 @@ out vec4 fragColor;
 
 void main() {
     float depth = texture(Depth, uv).r;
-    vec3 Focus = vec3(0.5 , 1., 10.);
+    vec3 Focus = focus;
     vec2  xy = uv * 2.0 -1.0;
     vec4  wViewPos =  vec4(xy, depth * 2.0 -1.0, 1.0) * inverseProjection;
     vec3  viewPos = vec3(wViewPos/wViewPos.w);

@@ -150,7 +150,7 @@ void Application::loop() {
 
         if(t - _lastSecondTime >= 1.) {
             _lastSecondTime = t;
-            std::cout << "FPS : " << _frameCount << std::endl;
+            //std::cout << "FPS : " << _frameCount << std::endl;
             _frameCount = 0;
         }
     } // Check if the ESC key was pressed or the window was closed

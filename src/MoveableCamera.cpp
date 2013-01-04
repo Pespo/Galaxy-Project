@@ -7,7 +7,7 @@ using namespace stein;
 using namespace std;
 
 MoveableCamera::MoveableCamera() :
-	Camera(), m_nextMove(), m_xMousePosition(), m_yMousePosition(), MOVE_STEP(0.1)
+	Camera(), m_nextMove(), m_xMousePosition(), m_yMousePosition(), MOVE_STEP(0.05), MOUSE_STEP(0.5)
 {}
 
 MoveableCamera::~MoveableCamera()
@@ -17,8 +17,8 @@ void MoveableCamera::cancelMovement() {
 	m_nextMove = Vector3f(0., 0., 0.);
 }
 void MoveableCamera::setMouseMovement(int deltaX, int deltaY) {
-	m_xMousePosition += 2. * (deltaX / (GLfloat)GalaxyApp::WIDTH);
-	m_yMousePosition += -2. * (deltaY / (GLfloat)GalaxyApp::HEIGHT);
+	m_xMousePosition += MOUSE_STEP * (deltaX / (GLfloat)GalaxyApp::WIDTH);
+	m_yMousePosition += -MOUSE_STEP * (deltaY / (GLfloat)GalaxyApp::HEIGHT);
 }
 
 void MoveableCamera::setKeyMovement(Direction to) {

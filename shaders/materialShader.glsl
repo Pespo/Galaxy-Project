@@ -16,7 +16,6 @@ uniform mat4 model;
 uniform mat4 view;
 uniform vec4 cameraPosition;
 uniform mat4 projection;
-uniform vec4 color;
 
 //uniform Light light;
 uniform uint material;
@@ -30,7 +29,6 @@ uniform bvec4 filledData; // filledData[0] : true if position,
 // Attributes : per vertex data
 in vec4 vertexPosition;
 in vec3 vertexNormal;
-in vec2 vertexUvs;
 in vec4 vertexColor;
 
 // Varyings : data to transmit to fragments
@@ -43,7 +41,6 @@ void main()
 {
     if (filledData[0]) position = model * vertexPosition;
     if (filledData[1]) normal = model * vec4(vertexNormal, 0.0);
-    if (filledData[2]) uvs = vertexUvs;
     if (filledData[3]) localColor = vertexColor;
 
     gl_Position = projection * view * model * vertexPosition;
@@ -57,7 +54,6 @@ void main()
 // Varyings : data receved and interpolated from the vertex shaders
 smooth in vec4 position;
 smooth in vec4 normal;
-smooth in vec2 uvs;
 smooth in vec4 localColor;
 
 // Final output

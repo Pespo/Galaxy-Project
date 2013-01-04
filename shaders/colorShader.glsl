@@ -26,11 +26,7 @@ void main()
 
 #endif
 
-
-
-
 #ifdef _FRAGMENT_
-
 
 // Final output
 out vec4 fragColor;

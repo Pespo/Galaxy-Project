@@ -21,7 +21,8 @@ protected :
 	float m_yMousePosition;
 	 
 public :
-	const float MOVE_STEP;
+	float MOVE_STEP;
+	float MOUSE_STEP;
 
 	MoveableCamera();
 	virtual ~MoveableCamera();
