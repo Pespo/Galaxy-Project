@@ -1,4 +1,5 @@
 #include "GalaxyApp.hpp"
+#include "GalaxyApp.hpp"
 #include "physics/PhysicManager.hpp"
 #include "MoveableCamera.hpp"
 
@@ -42,6 +43,8 @@ enum systemType {
 };
 
 GalaxyApp::GalaxyApp() : Application(WIDTH, HEIGHT) {
+
+    setTitle("Galaxy-Project / Guillaume ALBESPY & Guillaume BREDA");
     
     initGUI();
 
@@ -62,10 +65,10 @@ GalaxyApp::GalaxyApp() : Application(WIDTH, HEIGHT) {
     finalScreen =_scene.addObjectToDraw(squareObject.id);
 
     //variable effect
-    focus = Vector3f(0.5, 1.0, 10);
+    focus = Vector3f(5.0, 1.0, 10);
     sampleBlur = 4.;
     sobelCoef = 0.5;
-    gamma = 1.0;
+    gamma = 1.3;
     gui=true;
 
     // Builds
@@ -163,7 +166,7 @@ void GalaxyApp::initFramebuffer() {
 
 MoveableCamera* GalaxyApp::initCamera(const float size, Vector3f position) {
     _scene.pCamera = new MoveableCamera();
-    _scene.pCamera->setPerspectiveProjection(-size, size, -size*3/4, size*3/4, .1, 100);
+    _scene.pCamera->setPerspectiveProjection(-size, size, -size*9/16, size*9/16, .1, 100);
     _scene.pCamera->setPosition(position);
     return (MoveableCamera*)_scene.pCamera;
 }

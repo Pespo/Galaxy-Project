@@ -9,8 +9,8 @@
 class GalaxyApp : public stein::Application {
 
 public:
-	const static size_t WIDTH = 1024;
-	const static size_t HEIGHT = 768;
+	const static size_t WIDTH = 1280;
+	const static size_t HEIGHT = 720;
 
 	int _exMouseXPos; // Keeps the X mouse position of the previous image
 	int _exMouseYPos; // Keeps the Y mouse position of the previous image
