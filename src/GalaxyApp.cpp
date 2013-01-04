@@ -64,12 +64,13 @@ GalaxyApp::GalaxyApp() : Application(WIDTH, HEIGHT) {
     finalScreen =_scene.addObjectToDraw(squareObject.id);
 
     // Builds
-    buildSkybox(100);
+    setSkybox(100);
     
-    buildWoman(5.);
+    setWoman(5.);
 
-    buildStone(6.);
+    setStone(6.);
 
+    setCube();
     setSystem();
     //setSystem2();
     setDragon();
@@ -213,10 +214,10 @@ void GalaxyApp::drawGUI() {
     imguiBeginScrollArea("Settings", width - 210, height - 310, 200, 300, &logScroll);
     imguiSlider("bias", &_bias, 0.0000, 0.1, 0.0005);
     imguiSlider("Dragon speed", &forceDragon, 50, 500, 5);
-    imguiSlider("Dragon stretch", &systems[1].attraction.m_force, 1, 50,1);
-	imguiSlider("Shpere radius", &systems[0].hookSpring.m_freeLength, 0.1, 5, 0.1);
-    imguiSlider("Shpere resistance", &systems[0].hookSpring.m_k, 1, 100, 1);
-    imguiSlider("Shpere cinetic brake", &systems[0].cineticBrake.m_z, 0.0000000001, 1. , 0.000001 );
+    imguiSlider("Dragon stretch", &systems[DRAGON].attraction.m_force, 1, 50,1);
+	imguiSlider("Shpere radius", &systems[SPHERE].hookSpring.m_freeLength, 0.1, 3, 0.1);
+    imguiSlider("Shpere resistance", &systems[SPHERE].hookSpring.m_k, 1, 100, 1);
+    imguiSlider("Shpere cinetic brake", &systems[SPHERE].cineticBrake.m_z, 0.0001, 0.01 , 0.0001 );
     imguiEndScrollArea();
     imguiEndFrame();
 
@@ -230,8 +231,23 @@ void GalaxyApp::animate() {
     ((MoveableCamera*)_scene.pCamera)->move();
 
     ////////System 1 : Particule dans la main
-        systems[SPHERE].applySprings();
+        //apply spring
+
+        systems[SPHERE].hookSpring.m_freeLength += (radiusSphere) ? 0.05 : -0.05;
+        if(systems[SPHERE].hookSpring.m_freeLength < 0.7 && !radiusSphere) radiusSphere = true;
+        if(systems[SPHERE].hookSpring.m_freeLength > 1.8 && radiusSphere) radiusSphere = false;
+        for(int i = 1 ; i < systems[SPHERE].physicalObjects.size(); ++i) {
+            for(int j=i+1; j < systems[SPHERE].physicalObjects.size(); ++j){
+                systems[SPHERE].hookSpring.generateForces(systems[SPHERE].physicalObjects[i], systems[SPHERE].physicalObjects[j]);
+                systems[SPHERE].cineticBrake.generateForces(systems[SPHERE].physicalObjects[i], systems[SPHERE].physicalObjects[j]);
+            }
+        }
+        /*for(int i = 1 ; i < systems[SPHERE].physicalObjects.size(); ++i) {
+           systems[SPHERE].attraction.generateForces(systems[SPHERE].physicalObjects[i], systems[SPHERE].physicalObjects[i-1]);   
+        }*/
         systems[SPHERE].solve();
+
+        //Set movement
         for(int j = 0; j<systems[SPHERE].physicalObjects.size(); ++j){
             systems[SPHERE].physicalObjects[j]->m_rotation.y +=0.1;
             systems[SPHERE].physicalObjects[j]->m_rotation.x +=0.1;
@@ -246,7 +262,6 @@ void GalaxyApp::animate() {
                 d = (systems[DRAGON].physicalObjects[0]->m_position - systems[PILLS].physicalObjects[i]->m_position).norm();
                 direction = systems[PILLS].physicalObjects[i]->m_position - systems[DRAGON].physicalObjects[0]->m_position;
             }
-            _scene.setDrawnObjectModel(systems[PILLS].physicalObjects[i]->m_ObjectInstanceId, translation(systems[PILLS].physicalObjects[i]->m_position)); 
         }
 
     ///////System 3 : Dragon 
@@ -256,7 +271,6 @@ void GalaxyApp::animate() {
         Vector3f zero = Vector3f(1., 0., 0.);
         float rotY = 0;
         Vector3f velocity = Vector3f(systems[DRAGON].physicalObjects[0]->m_velocity.x, 0. , systems[DRAGON].physicalObjects[0]->m_velocity.z);
-        //velocity = velocity.normalize();
         if(velocity.norm() ) {
             rotY = zero.dotP(velocity) / velocity.norm() ;
             rotY = (rotY<0) ? - acos(rotY) : acos(rotY);
@@ -267,8 +281,13 @@ void GalaxyApp::animate() {
             else systems[DRAGON].physicalObjects[0]->m_rotation.y = rotY; 
         } else systems[DRAGON].physicalObjects[0]->m_rotation.y = 0;
 
-        systems[DRAGON].applySprings();
+        //apply spring
+        for(int i = 1; i < systems[DRAGON].physicalObjects.size(); ++i) {
+            systems[DRAGON].attraction.generateForces(systems[DRAGON].physicalObjects[i], systems[DRAGON].physicalObjects[i-1]);
+        }
         systems[DRAGON].solve();
+
+        //set movement
         for(int j = 0; j<systems[DRAGON].physicalObjects.size(); ++j){
             _scene.setDrawnObjectModel(systems[DRAGON].physicalObjects[j]->m_ObjectInstanceId, translation(systems[DRAGON].physicalObjects[j]->m_position)  * yRotation(systems[DRAGON].physicalObjects[j]->m_rotation.y) * scale(Vector3f(systems[DRAGON].physicalObjects[j]->m_mass, systems[DRAGON].physicalObjects[j]->m_mass, systems[DRAGON].physicalObjects[j]->m_mass))); 
         }
@@ -287,7 +306,7 @@ void GalaxyApp::renderFrame() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Draws scene
-        _scene.drawObjectsOfScene();
+        _scene.drawObjectsOfScene(/*systems[DRAGON].physicalObjects[0]*/);
 
         /*glEnable(GL_TEXTURE_CUBE_MAP);
 
@@ -311,8 +330,6 @@ void GalaxyApp::renderFrame() {
            
             setTextureUnitsInShader(_scene.drawnObjects[1].shaderId);
             _scene.storedObjects[_scene.drawnObjects[1].objectId]->drawObject();*/
-
-        glDisable(GL_DEPTH_TEST);
 
     Matrix4f orthoProj = orthoP(-0.5, 0.5, -0.5, 0.5, -1.0, 1.0);
     Matrix4f inv;
@@ -369,7 +386,7 @@ void GalaxyApp::renderFrame() {
         _scene.drawSimpleObjectsOfScene(shaders[SHADOW]);*/
 
     //Light
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    /*glBindFramebuffer(GL_FRAMEBUFFER, 0);
         //glDrawBuffers(lightFB.outCount, lightFB.drawBuffers);
         glViewport( 0, 0, WIDTH, HEIGHT);
 
@@ -379,7 +396,7 @@ void GalaxyApp::renderFrame() {
         glUseProgram(shaders[LIGHT]);
 
         glUniformMatrix4fv(glGetUniformLocation(shaders[LIGHT], "projection"), 1, GL_FALSE, (const float*) orthoProj);
-        glUniformMatrix4fv(glGetUniformLocation(shaders[LIGHT], "inverseProjection"), 1, GL_FALSE, (const float*) _scene.pCamera->getViewInv());
+        glUniformMatrix4fv(glGetUniformLocation(shaders[LIGHT], "inverseProjection"), 1, GL_FALSE, (const float*) inv);
         glUniform3fv(glGetUniformLocation(shaders[LIGHT], "cameraPosition"), 1, (const float*) _scene.pCamera->getPosition());
         glUniform1i(glGetUniformLocation(shaders[LIGHT], "Diffuse"), 0);
         glUniform1i(glGetUniformLocation(shaders[LIGHT], "Normal"), 1);
@@ -395,10 +412,17 @@ void GalaxyApp::renderFrame() {
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, gbufferFB.depthTexId);  
 
+        glDisable(GL_DEPTH_TEST);
+
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_ONE, GL_ONE);
+
         _scene.storedObjects[0]->drawObject();
+
+        glDisable(GL_BLEND);*/
    
     //horizontal blur
-    /*glBindFramebuffer(GL_FRAMEBUFFER, hblurFB.fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, hblurFB.fbo);
         glDrawBuffers(hblurFB.outCount, hblurFB.drawBuffers);
         glViewport( 0, 0, WIDTH/2, HEIGHT/2);
 
@@ -415,10 +439,10 @@ void GalaxyApp::renderFrame() {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, gbufferFB.colorTexId[0]); 
 
-        _scene.storedObjects[0]->drawObject();*/
+        _scene.storedObjects[0]->drawObject();
 
     //Vertical blur
-    /*glBindFramebuffer(GL_FRAMEBUFFER, vblurFB.fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, vblurFB.fbo);
     glDrawBuffers(vblurFB.outCount, vblurFB.drawBuffers);
         glViewport( 0, 0, WIDTH/2, HEIGHT/2);
 
@@ -435,10 +459,10 @@ void GalaxyApp::renderFrame() {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, hblurFB.colorTexId[0]); 
 
-        _scene.storedObjects[0]->drawObject();*/
+        _scene.storedObjects[0]->drawObject();
 
     //coc 
-    /*glBindFramebuffer(GL_FRAMEBUFFER, cocFB.fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, cocFB.fbo);
         glDrawBuffers(cocFB.outCount, cocFB.drawBuffers);
         glViewport( 0, 0, WIDTH, HEIGHT);
 
@@ -450,16 +474,17 @@ void GalaxyApp::renderFrame() {
     
         glUniformMatrix4fv(glGetUniformLocation(shaders[COC], "projection"), 1, GL_FALSE, (const float*) orthoProj);
         glUniformMatrix4fv(glGetUniformLocation(shaders[COC], "inverseProjection"), 1, GL_FALSE, (const float*) inv);
+        // glUniform3fv(glGetUniformLocation(shaders[COC], "focus"), 1, Vector3f(0.5, 1.0 ))
         glUniform1i(glGetUniformLocation(shaders[COC], "Depth"), 0);
            
         // Bind color texture
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, gbufferFB.depthTexId);  
 
-        _scene.storedObjects[0]->drawObject();*/
+        _scene.storedObjects[0]->drawObject();
     
     //dof 
-    /*glBindFramebuffer(GL_FRAMEBUFFER, dofFB.fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, dofFB.fbo);
         glDrawBuffers(dofFB.outCount, dofFB.drawBuffers);
         glViewport( 0, 0, WIDTH, HEIGHT);
 
@@ -483,10 +508,10 @@ void GalaxyApp::renderFrame() {
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, cocFB.colorTexId[0]);
 
-        _scene.storedObjects[0]->drawObject();*/
+        _scene.storedObjects[0]->drawObject();
 
     //Gamma
-    /*glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport( 0, 0, WIDTH, HEIGHT);
 
         // Clears the window with current clearing color, clears also the depth buffer
@@ -501,7 +526,7 @@ void GalaxyApp::renderFrame() {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, dofFB.colorTexId[0]);
 
-        _scene.storedObjects[0]->drawObject();*/
+        _scene.storedObjects[0]->drawObject();
 
     // Draws GUI
     drawGUI();
@@ -536,7 +561,7 @@ void GalaxyApp::keyEvent() {
 }
 
 // Builds the skybox
-void GalaxyApp::buildSkybox(size_t size) {
+void GalaxyApp::setSkybox(size_t size) {
     Object &skyObject = _scene.createObject(GL_TRIANGLES);
     MeshBuilder skyBuilder = MeshBuilder();
     buildSquare(skyObject, size, skyBuilder);
@@ -573,7 +598,7 @@ void GalaxyApp::buildSkybox(size_t size) {
 }
 
 // Builds the woman
-void GalaxyApp::buildWoman(float size) {
+void GalaxyApp::setWoman(float size) {
     GLuint diff = loadTexture( "textures/woman/womanDiffuse.tga");
    GLuint spec = loadTexture( "textures/woman/womanSpecular.tga");
    GLuint norm = loadTexture( "textures/woman/womanNormal.tga");
@@ -597,7 +622,7 @@ void GalaxyApp::buildWoman(float size) {
     _scene.setDrawnObjectMaterialID(woman, JADE);*/
 }
 
-void GalaxyApp::buildStone(float size) {
+void GalaxyApp::setStone(float size) {
     Object &stoneObject = _scene.createObject(GL_TRIANGLES);
 
     MeshBuilder stoneBuilder = MeshBuilder();
@@ -616,18 +641,36 @@ void GalaxyApp::setSystem(){
    GLuint norm = loadTexture( "textures/sphere/mercureNormal.tga");
    GLuint disp = loadTexture( "textures/sphere/mercureDisp.tga");
 
+   GLuint diffCube = loadTexture( "textures/cube/cubeDiffuse.tga");
+   GLuint specCube = loadTexture( "textures/cube/cubeSpecular.tga");
+   GLuint normCube = loadTexture( "textures/cube/cubeNormal.tga");
+   GLuint dispCube = loadTexture( "textures/cube/cubeDisp.tga");
+
+    Object &cubeObject = _scene.createObject(GL_TRIANGLES);
+    MeshBuilder cubeBuilder = MeshBuilder();
+    buildSkybox(cubeObject, 0.2, cubeBuilder);
+
+    
     Object &sphereObject = _scene.createObject(GL_TRIANGLES);
     MeshBuilder sphereBuilder = MeshBuilder();
     //buildCube(sphereObject, 1, sphereBuilder);
     buildObjectGeometryFromOBJ(sphereObject, "res/objs/sphere.obj", false, false, sphereBuilder);
 
     GLuint s = createSystem();
-    GLuint mat = 2;
-    for(int i = 0 ; i<20; ++i) {
-        mat = mat < 3 ? 3 :2;
+
+    GLuint instance =_scene.addObjectToDraw(cubeObject.id);
+    _scene.setDrawnObjectShaderID(instance, shaders[TEXTURE]);
+    _scene.setDrawnObjectTextureID(instance, 0, diffCube);
+    _scene.setDrawnObjectTextureID(instance, 1, specCube);
+    _scene.setDrawnObjectTextureID(instance, 2, normCube);
+    _scene.setDrawnObjectTextureID(instance, 3, dispCube);  
+
+    GLuint particle = systems[s].addPhysicToObject(instance);
+    //systems[s].setPhysicObjectMass(particle, 0.2);
+
+    for(int i = 0 ; i<40; ++i) {
+
         GLuint instance =_scene.addObjectToDraw(sphereObject.id);
-       /* _scene.setDrawnObjectShaderID(instance, shaders[MATERIAL]);
-        _scene.setDrawnObjectMaterialID(instance, mat);*/
         _scene.setDrawnObjectShaderID(instance, shaders[TEXTURE]);
         _scene.setDrawnObjectTextureID(instance, 0, diff);
         _scene.setDrawnObjectTextureID(instance, 1, spec);
@@ -636,13 +679,35 @@ void GalaxyApp::setSystem(){
         _scene.setDrawnObjectModel(instance, translation(Vector3f((0.5 - frand())/2., (0.5 - frand())/2., (0.5 - frand())/2.)));
         
 
-        GLuint particle = systems[s].addPhysicToObject(instance);
+        particle = systems[s].addPhysicToObject(instance);
         systems[s].setPhysicObjectPosition(particle, Vector3f((0.5 - frand())/2., (0.5 - frand())/2., (0.5 - frand())/2.));//(i/5., 0., 0.));
-        systems[s].setPhysicObjectMass(particle, 0.05);
+        systems[s].setPhysicObjectRotation(particle, Vector3f(frand()*6.18, frand()*6.18, frand()*6.18));
+        systems[s].setPhysicObjectMass(particle, 0.1);
     }
 
-    systems[s].setHookSpring(50, 0.5);   
-    systems[s].setCineticBrake(0.00001);
+    //systems[s].setAttraction(20);
+    systems[s].setHookSpring(22, 0.7);   
+    radiusSphere = true;
+    systems[s].setCineticBrake(0.0008);
+}
+
+void GalaxyApp::setCube(){
+   /*GLuint diff = loadTexture( "textures/cube/cubeDiffuse.tga");
+   GLuint spec = loadTexture( "textures/cube/cubeSpecular.tga");
+   GLuint norm = loadTexture( "textures/cube/cubeNormal.tga");
+   GLuint disp = loadTexture( "textures/cube/cubeDisp.tga");
+
+    Object &sphereObject = _scene.createObject(GL_TRIANGLES);
+    MeshBuilder sphereBuilder = MeshBuilder();
+    buildSkybox(sphereObject, 0.2, sphereBuilder);
+
+    GLuint instance =_scene.addObjectToDraw(sphereObject.id);
+    _scene.setDrawnObjectShaderID(instance, shaders[TEXTURE]);
+    _scene.setDrawnObjectTextureID(instance, 0, diff);
+    _scene.setDrawnObjectTextureID(instance, 1, spec);
+    _scene.setDrawnObjectTextureID(instance, 2, norm);
+    _scene.setDrawnObjectTextureID(instance, 3, disp);     */   
+
 }
 
 void GalaxyApp::setSystem2(){
@@ -670,16 +735,11 @@ void GalaxyApp::setSystem2(){
 
 void GalaxyApp::setPills(){
 
-    Object &sphereObject = _scene.createObject(GL_TRIANGLES);
-    MeshBuilder sphereBuilder = MeshBuilder();
-    buildCube(sphereObject, 0.1, sphereBuilder);
-
     GLuint s = createSystem();
-    for(int i = 0 ; i<20; ++i) {
-        GLuint instance =_scene.addObjectToDraw(sphereObject.id);
-        _scene.setDrawnObjectColor(instance, Color(1.0, 0., 0.));
-        GLuint particle = systems[s].addPhysicToObject(instance);
-        systems[s].setPhysicObjectPosition(particle, Vector3f((0.5 - frand())*20., (0.5 - frand())*20., (0.5 - frand())*20.));//(i/5., 0., 0.));
+    for(int i = 0 ; i<30; ++i) {
+        //GLuint instance =_scene.addObjectToDraw(sphereObject.id);
+        GLuint particle = systems[s].addPhysicToObject(200 + i);
+        systems[s].setPhysicObjectPosition(particle, Vector3f((0.2 - frand())*15., (0.5 - frand())*20., (0.8 - frand())*10.));//(i/5., 0., 0.));
     }
 }
 
@@ -697,8 +757,6 @@ void GalaxyApp::setDragon(){
     buildObjectGeometryFromOBJ(dragonObject, "res/objs/dragonHead.obj", false, false, dragonBuilder);
 
     GLuint instance =_scene.addObjectToDraw(dragonObject.id);
-    /*_scene.setDrawnObjectShaderID(instance, shaders[MATERIAL]);
-    _scene.setDrawnObjectMaterialID(instance, GOLD);*/
     _scene.setDrawnObjectShaderID(instance, shaders[TEXTURE]);
     _scene.setDrawnObjectTextureID(instance, 0, diff2);
     _scene.setDrawnObjectTextureID(instance, 1, spec);
@@ -721,14 +779,12 @@ void GalaxyApp::setDragon(){
         _scene.setDrawnObjectTextureID(instance, 1, spec);
         _scene.setDrawnObjectTextureID(instance, 2, norm);
         _scene.setDrawnObjectTextureID(instance, 3, disp);
-       /* _scene.setDrawnObjectShaderID(instance, shaders[MATERIAL]);
-        _scene.setDrawnObjectMaterialID(instance, GOLD);*/
         particle = systems[s].addPhysicToObject(instance);
         systems[s].setPhysicObjectPosition(particle, Vector3f(-1 - i, 0., 0.));
         systems[s].setPhysicObjectMass(particle, 0.1);
     }
 
-    systems[s].setAttraction(20);
+    systems[s].setAttraction(4);
 }
 
 GLuint GalaxyApp::createSystem() {

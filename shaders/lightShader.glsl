@@ -85,20 +85,12 @@ void main(void)
 	vec4  wPosition =  vec4(xy, depth, 1.0 ) * inverseProjection;
 	vec3  position = vec3(wPosition/wPosition.w);
 
-	vec3 n = normalize(normal);
-	vec3 l = vec3(0.0, 5.0, 0.0) - position;
+	vec3 cpointlight1 = pointLight(vec3(0.2, 0.2, 1.0), 10.0, vec3(0.0, 0.0, 0.0), normal, position, diffuse.rgb, spec, cameraPosition);
+	//vec3 cpointlight2 = pointLight(vec3(1.0, 0.0, 0.0), 1.0, vec3(10.0, 1.0, 10.0), n, position, diffuse, spec, cameraPosition);
+	vec3 cdirlight1 = directionalLight(vec3(0.8, 0.8, 1.0), 1.0, vec3(0.0, -1.0, 0.0), normal, position, diffuse.rgb, spec, cameraPosition);
+	//vec3 cspotlight1 = spotLight(vec3(1.0, 1.0, 0.0), 1., vec3(0., -1., 0.), vec3( 0., 5.5, 0.), n, position, diffuse, spec, cameraPosition );
 
-	vec3 v = position - cameraPosition;
-	vec3 h = normalize(l-v);
-	float n_dot_l = clamp(dot(n, l), 0, 1.0);
-	float n_dot_h = clamp(dot(n, h), 0, 1.0);
-
-	float d = distance(vec3(0.0, 5.0, 0.0), position);
-	float att = clamp(  1.0 / ( 1.0 + 1.0 * (d*d)), 0.0, 1.0);
-
-	vec3 color = vec3(1.0, 1.0, 1.0) * 20. * att * (diffuse * n_dot_l + spec * vec3(1.0, 1.0, 1.0) *  pow(n_dot_h, spec * 100.0));
-
-	fragColor = vec4(color, 1.0);
+	fragColor = vec4(cpointlight1 + cdirlight1 , 1.0);
 	//fragColor = vec4(cdirlight1, 1.0);
 }
 

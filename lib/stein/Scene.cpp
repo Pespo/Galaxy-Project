@@ -118,6 +118,9 @@ void Scene::setAppearance(const ObjectInstance &instance) {
     
     glUniform4fv(glGetUniformLocation(instance.shaderId, "color"), 1, instance.color);
 
+   /* glUniform4fv(glGetUniformLocation(instance.shaderId, "lightPosition"), 1, instance.color);
+    glUniform4fv(glGetUniformLocation(instance.shaderId, "lightDirection"), 1, instance.color);*/
+
     if(instance.materialId != NA) {
         // Sets the material
 		setMaterialInShader(shaderId, instance.materialId);

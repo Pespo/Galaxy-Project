@@ -32,6 +32,7 @@ public:
     //FramebufferGL gammaFB;
 
     float forceDragon;
+    bool radiusSphere;
     GLuint shaders[11];
     GLuint finalScreen;
     //SoundFileRead soundfile;
@@ -49,9 +50,10 @@ public:
 	void mouseMotionEvent();
 	void mouseButtonEvent();
     void keyEvent();
-    void buildSkybox(size_t size);
-    void buildWoman(float size);
-    void buildStone(float size);
+    void setSkybox(size_t size);
+    void setWoman(float size);
+    void setStone(float size);
+    void setCube();
     void setSystem();
     void setSystem2();
     void setDragon();

@@ -36,7 +36,7 @@ out vec4 fragColor;
 
 void main(void)
 {
-	fragColor = vec4(texture(textureUnitDiffuse, uv).rgb, 1.0);
+	fragColor = vec4(texture(textureUnitDiffuse, uv).rgb * 0.4, 1.);
 }
 
 #endif

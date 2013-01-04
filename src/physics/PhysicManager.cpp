@@ -4,12 +4,12 @@
 #include <stein/Scene.hpp>
 
 PhysicManager::PhysicManager() :
-    defaultPosition(0.0, 0.0, 0.0), defaultMass(1.0), defaultVelocity(0.0, 0.0, 0.0), defaultForce(0.0, 0.0, 0.0), defaultRotation(0.0, 0.0, 0.0),
+    defaultPosition(0.0, 0.0, 0.0), defaultMass(1.0), defaultVelocity(0.0, 0.0, 0.0), defaultForce(0.0, 0.0, 0.0), defaultRotation(0.0, 0.0, 0.0), step(0.002),
     bHookSpring(false), bAttraction(false), bCineticBrake(false),  
     hookSpring(), attraction(), cineticBrake(), solver(0.002) {}
 
 PhysicManager::PhysicManager(float step = 0.002) :
-    defaultPosition(0.0, 0.0, 0.0), defaultMass(1.0), defaultVelocity(0.0, 0.0, 0.0), defaultForce(0.0, 0.0, 0.0), defaultRotation(0.0, 0.0, 0.0),
+    defaultPosition(0.0, 0.0, 0.0), defaultMass(1.0), defaultVelocity(0.0, 0.0, 0.0), defaultForce(0.0, 0.0, 0.0), defaultRotation(0.0, 0.0, 0.0), step(0.002),
     bHookSpring(false), bAttraction(false), bCineticBrake(false),  
     hookSpring(), attraction(), cineticBrake(), solver(step) {}
 
@@ -47,7 +47,7 @@ void PhysicManager::setPhysicObjectRotation(GLuint indexPhysicalObject, const Ve
     assert(indexPhysicalObject<physicalObjects.size());
     physicalObjects[indexPhysicalObject]->m_rotation = rotation;
 
-};
+}
 
 void PhysicManager::setDefaultPosition(const Vector3f pos) {
 	defaultPosition = pos;
