@@ -369,8 +369,8 @@ void GalaxyApp::renderFrame() {
         _scene.drawSimpleObjectsOfScene(shaders[SHADOW]);*/
 
     //Light
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        //glDrawBuffers(lightFB.outCount, lightFB.drawBuffers);
+    glBindFramebuffer(GL_FRAMEBUFFER, lightFB.fbo);
+        glDrawBuffers(lightFB.outCount, lightFB.drawBuffers);
         glViewport( 0, 0, WIDTH, HEIGHT);
 
         // Clears the window with current clearing color, clears also the depth buffer
@@ -398,7 +398,7 @@ void GalaxyApp::renderFrame() {
         _scene.storedObjects[0]->drawObject();
    
     //horizontal blur
-    /*glBindFramebuffer(GL_FRAMEBUFFER, hblurFB.fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, hblurFB.fbo);
         glDrawBuffers(hblurFB.outCount, hblurFB.drawBuffers);
         glViewport( 0, 0, WIDTH/2, HEIGHT/2);
 
@@ -415,10 +415,10 @@ void GalaxyApp::renderFrame() {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, gbufferFB.colorTexId[0]); 
 
-        _scene.storedObjects[0]->drawObject();*/
+        _scene.storedObjects[0]->drawObject();
 
     //Vertical blur
-    /*glBindFramebuffer(GL_FRAMEBUFFER, vblurFB.fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, vblurFB.fbo);
     glDrawBuffers(vblurFB.outCount, vblurFB.drawBuffers);
         glViewport( 0, 0, WIDTH/2, HEIGHT/2);
 
@@ -435,10 +435,10 @@ void GalaxyApp::renderFrame() {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, hblurFB.colorTexId[0]); 
 
-        _scene.storedObjects[0]->drawObject();*/
+        _scene.storedObjects[0]->drawObject();
 
     //coc 
-    /*glBindFramebuffer(GL_FRAMEBUFFER, cocFB.fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, cocFB.fbo);
         glDrawBuffers(cocFB.outCount, cocFB.drawBuffers);
         glViewport( 0, 0, WIDTH, HEIGHT);
 
@@ -456,10 +456,10 @@ void GalaxyApp::renderFrame() {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, gbufferFB.depthTexId);  
 
-        _scene.storedObjects[0]->drawObject();*/
+        _scene.storedObjects[0]->drawObject();
     
     //dof 
-    /*glBindFramebuffer(GL_FRAMEBUFFER, dofFB.fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, dofFB.fbo);
         glDrawBuffers(dofFB.outCount, dofFB.drawBuffers);
         glViewport( 0, 0, WIDTH, HEIGHT);
 
@@ -483,10 +483,10 @@ void GalaxyApp::renderFrame() {
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, cocFB.colorTexId[0]);
 
-        _scene.storedObjects[0]->drawObject();*/
+        _scene.storedObjects[0]->drawObject();
 
     //Gamma
-    /*glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport( 0, 0, WIDTH, HEIGHT);
 
         // Clears the window with current clearing color, clears also the depth buffer
@@ -501,7 +501,7 @@ void GalaxyApp::renderFrame() {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, dofFB.colorTexId[0]);
 
-        _scene.storedObjects[0]->drawObject();*/
+        _scene.storedObjects[0]->drawObject();
 
     // Draws GUI
     drawGUI();
@@ -587,27 +587,33 @@ void GalaxyApp::buildWoman(float size) {
     GLuint woman =_scene.addObjectToDraw(womanObject.id);
     _scene.setDrawnObjectModel(woman, translation(Vector3f( -3.2 , -7.7, -2.5)) * yRotation(-M_PI/8) * scale(Vector3f( size , size, size)));
     //_scene.setDrawnObjectShaderID(woman, shaders[CUBEMAP]);
-    _scene.setDrawnObjectShaderID(woman, shaders[TEXTURE]);
-    //_scene.setDrawnObjectTextureID(woman, 0, tex);
-    _scene.setDrawnObjectTextureID(woman, 0, diff);
-    _scene.setDrawnObjectTextureID(woman, 1, spec);
-    _scene.setDrawnObjectTextureID(woman, 2, norm);
-    _scene.setDrawnObjectTextureID(woman, 2, disp);
-   /* _scene.setDrawnObjectShaderID(woman, shaders[MATERIAL]);
-    _scene.setDrawnObjectMaterialID(woman, JADE);*/
+    // _scene.setDrawnObjectShaderID(woman, shaders[TEXTURE]);
+    // //_scene.setDrawnObjectTextureID(woman, 0, tex);
+    // _scene.setDrawnObjectTextureID(woman, 0, diff);
+    // _scene.setDrawnObjectTextureID(woman, 1, spec);
+    // _scene.setDrawnObjectTextureID(woman, 2, norm);
+    // _scene.setDrawnObjectTextureID(woman, 2, disp);
+    _scene.setDrawnObjectShaderID(woman, shaders[MATERIAL]);
+    _scene.setDrawnObjectMaterialID(woman, JADE);
 }
 
 void GalaxyApp::buildStone(float size) {
-    Object &stoneObject = _scene.createObject(GL_TRIANGLES);
+    GLuint diff = loadTexture( "textures/pedestal/pedestalDiffuse.tga");
+    GLuint spec = loadTexture( "textures/pedestal/pedestalSpecular.tga");
+    GLuint norm = loadTexture( "textures/pedestal/pedestalNormal.tga");
+    GLuint disp = loadTexture( "textures/pedestal/pedestalDisp.tga");
 
+    Object &stoneObject = _scene.createObject(GL_TRIANGLES);
     MeshBuilder stoneBuilder = MeshBuilder();
-    buildObjectGeometryFromOBJ(stoneObject, "res/objs/stone.obj", false, false, stoneBuilder);
+    buildObjectGeometryFromOBJ(stoneObject, "res/objs/stone3.obj", false, false, stoneBuilder);
 
     GLuint stone =_scene.addObjectToDraw(stoneObject.id);
-    _scene.setDrawnObjectShaderID(stone, shaders[MATERIAL]);
-    _scene.setDrawnObjectColor(stone, Color(1., 1., 0.));
-    _scene.setDrawnObjectModel(stone, translation(Vector3f( -2.9 , -7.1, -2.5)) * yRotation(-M_PI/8) * scale(Vector3f( size , size, size)));
-    _scene.setDrawnObjectMaterialID(stone, CHROME);
+    _scene.setDrawnObjectModel(stone, translation(Vector3f( -2.9 , -9.5, -2.5)) * yRotation(-M_PI/8) * scale(Vector3f( size , size, size)));
+    _scene.setDrawnObjectShaderID(stone, shaders[TEXTURE]);
+    _scene.setDrawnObjectTextureID(stone, 0, diff);
+    _scene.setDrawnObjectTextureID(stone, 1, spec);
+    _scene.setDrawnObjectTextureID(stone, 2, norm);
+    _scene.setDrawnObjectTextureID(stone, 2, disp);
 }
 
 void GalaxyApp::setSystem(){
@@ -685,11 +691,11 @@ void GalaxyApp::setPills(){
 
 void GalaxyApp::setDragon(){
 
-    GLuint diff = loadTexture( "textures/dragon/dragonDiffuse.tga");
+    GLuint diff = loadTexture( "textures/dragon/dragonScaleDiffuse.tga");
     GLuint diff2 = loadTexture( "textures/dragon/dragon.tga");
-    GLuint spec = loadTexture( "textures/dragon/dragonSpecular.tga");
-    GLuint norm = loadTexture( "textures/dragon/dragonNormal.tga");
-    GLuint disp = loadTexture( "textures/dragon/dragonDisp.tga");
+    GLuint spec = loadTexture( "textures/dragon/dragonScaleSpecular.tga");
+    GLuint norm = loadTexture( "textures/dragon/dragonScaleNormal.tga");
+    GLuint disp = loadTexture( "textures/dragon/dragonScaleDisp.tga");
     GLuint s = createSystem();
 
     Object &dragonObject = _scene.createObject(GL_TRIANGLES);

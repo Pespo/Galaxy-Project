@@ -60,7 +60,7 @@ void main(void)
 	float spec = texture(textureUnitSpecular, uv).r;
 	vec3 n = normalize(texture(textureUnitNormal, uv).rgb);
 
-	fragColor = vec4(diffuse, spec);
+	fragColor = vec4(normal, spec);
 	fragNormal = vec4(n, spec);
 
 }
