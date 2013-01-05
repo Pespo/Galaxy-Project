@@ -3,7 +3,9 @@ Galaxy Project
 December 2012 / January 2013
 
 Guillaume ALBESPY
+
 Guillaume BREDA
+
 IMAC Engineering School, prom 2013
 
 
@@ -51,5 +53,7 @@ Use the command line or in Visual Studio set launch parameters to the following 
 How to use the program
 ----------------------
 Use the keys Z,Q,S,D on an AZERTY keyboard and your mouse to move the free camera.
+
 Press H to use your mouse on the Setting menu, press it again to take back the control of the camera.
+
 Press G to make the Settings panel disapear, press it again to make it appear.
