@@ -45,8 +45,7 @@ Running
 --------
 Use the command line or in Visual Studio set launch parameters to the following :
 <pre>
-	bin/debug/td1/td1_corrected td1/1_3_corrected.glsl
-	bin/release/td1/td1_corrected td1/1_3_corrected.glsl
+	bin/debug/galaxy_project/galaxy_project
 </pre>
 
 
