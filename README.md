@@ -1,12 +1,11 @@
 Galaxy Project
 ==============
 December 2012 / January 2013
-----------------------------
+
 Guillaume ALBESPY
 Guillaume BREDA
-----------------
 IMAC Engineering School, prom 2013
-----------------------------------
+
 
 Build on Linux
 --------------
